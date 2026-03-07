@@ -208,11 +208,7 @@ body{font-family:'Inter Tight',sans-serif;background:#e8e6e3;min-height:100vh;pa
 </div>
 
 <script>
-// ─────────────────────────────────────────────
-//  ⚠️  PEGA TU API KEY DE ANTHROPIC AQUÍ
-// ─────────────────────────────────────────────
-const ANTHROPIC_API_KEY = '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';
-// ─────────────────────────────────────────────
+// API key se maneja en Netlify (Environment Variables)
 
 let LOGO_URL = null, MONOGRAM_URL = null, editMode = false;
 
@@ -282,61 +278,14 @@ function toBase64(file){
 }
 
 async function extractLabData(b64){
-  const prompt=`Eres un extractor de datos de reportes de análisis de aceite de Bureau Veritas / LOAMS.
-Extrae TODOS los siguientes campos. Si no se encuentra un campo usa null.
-Responde ÚNICAMENTE con un objeto JSON válido, sin markdown ni explicación.
-
-{
-  "status": "CRITICAL" o "WARNING" o "NORMAL" o "CAUTION",
-  "labNo": "string",
-  "sampledDate": "string",
-  "receivedDate": "string",
-  "completedDate": "string",
-  "unitId": "string",
-  "componentDescription": "string",
-  "worksite": "string",
-  "referenceNo": "string",
-  "fluidManufacturer": "string",
-  "fluidProduct": "string",
-  "fluidGrade": "string",
-  "evaluatedBy": "string",
-  "isoCode": "string",
-  "waterKFppm": number o null,
-  "waterCritical": true o false,
-  "particles4um": number o null,
-  "particles6um": number o null,
-  "particles14um": number o null,
-  "particles21um": number o null,
-  "particles38um": number o null,
-  "particles70um": number o null,
-  "recommendation": "string" o null
-}
-waterCritical = true si el valor de agua está marcado con * o resaltado como crítico.`;
-
-  const resp = await fetch('https://api.anthropic.com/v1/messages', {
+  const resp = await fetch('/.netlify/functions/analyze', {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'x-api-key': ANTHROPIC_API_KEY,
-      'anthropic-version': '2023-06-01',
-      'anthropic-dangerous-allow-browser': 'true'
-    },
-    body: JSON.stringify({
-      model: 'claude-sonnet-4-20250514',
-      max_tokens: 1000,
-      messages: [{
-        role: 'user',
-        content: [
-          { type: 'document', source: { type: 'base64', media_type: 'application/pdf', data: b64 } },
-          { type: 'text', text: prompt }
-        ]
-      }]
-    })
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ pdfBase64: b64 })
   });
   if(!resp.ok){ const t=await resp.text(); throw new Error(`API ${resp.status}: ${t}`); }
-  const res = await resp.json();
-  const raw = res.content.map(c=>c.text||'').join('').trim();
-  return JSON.parse(raw.replace(/```json|```/g,'').trim());
+  const clean = (await resp.text()).replace(/```json|```/g,'').trim();
+  return JSON.parse(clean);
 }
 
 function renderReport(d){
