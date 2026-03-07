@@ -257,12 +257,10 @@ waterCritical = true si el valor de agua está marcado con * o resaltado como cr
   const resp = await fetch(NETLIFY_FN, {
     method: 'POST',
     headers: {'Content-Type':'application/json'},
-    body: JSON.stringify({b64, prompt})
+    body: JSON.stringify({pdfBase64: b64})
   });
   if(!resp.ok){const t=await resp.text();throw new Error(`API ${resp.status}: ${t}`);}
-  const res = await resp.json();
-  const raw = res.content.map(c=>c.text||'').join('').trim();
-  return JSON.parse(raw.replace(/```json|```/g,'').trim());
+  return await resp.json();
 }
 
 function renderReport(d){
