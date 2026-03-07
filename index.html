@@ -92,6 +92,14 @@ body{font-family:'Inter Tight',sans-serif;background:#e8e6e3;min-height:100vh;pa
       <img src="logo.png" alt="Flowtech" style="height:52px;background:#0A1726;border-radius:6px;padding:8px 16px"/>
     </div>
     <p>Sube el PDF del laboratorio Bureau Veritas / LOAMS para generar un reporte con la marca Flowtech.</p>
+    <div style="margin-bottom:16px;text-align:left">
+      <label style="font-size:.76rem;color:#888;font-weight:500;display:block;margin-bottom:6px;text-transform:uppercase;letter-spacing:.08em">Empresa / Cliente</label>
+      <input id="empresa-input" type="text" placeholder="Ej. Aceros del Norte" style="width:100%;padding:10px 14px;border:1.5px solid #ddd;border-radius:8px;font-family:'Inter Tight',sans-serif;font-size:.88rem;color:#333;outline:none;transition:.2s" onfocus="this.style.borderColor='var(--orange)'" onblur="this.style.borderColor='#ddd'"/>
+    </div>
+    <div style="margin-bottom:16px;text-align:left">
+      <label style="font-size:.76rem;color:#888;font-weight:500;display:block;margin-bottom:6px;text-transform:uppercase;letter-spacing:.08em">Generado por</label>
+      <input id="generado-input" type="text" placeholder="Ej. Ramiro Oropeza" style="width:100%;padding:10px 14px;border:1.5px solid #ddd;border-radius:8px;font-family:'Inter Tight',sans-serif;font-size:.88rem;color:#333;outline:none;transition:.2s" onfocus="this.style.borderColor='var(--orange)'" onblur="this.style.borderColor='#ddd'"/>
+    </div>
     <div class="drop-zone" id="drop-zone">
       <svg width="38" height="38" fill="none" stroke="#aaa" stroke-width="1.5" viewBox="0 0 24 24"><path d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M16 8l-4-4-4 4M12 4v12"/></svg>
       <span>Arrastra el PDF aquí o haz clic para buscar</span>
@@ -201,6 +209,8 @@ waterCritical = true si el valor de agua está marcado con * o resaltado como cr
 function renderReport(data){
   // Normalize to array
   const samples = Array.isArray(data) ? data : [data];
+  const empresa = document.getElementById('empresa-input').value.trim() || null;
+  const generadoPor = document.getElementById('generado-input').value.trim() || null;
   const container = document.getElementById('reports-container');
   container.innerHTML = '';
   const genDate = new Date().toLocaleDateString('es-MX',{year:'numeric',month:'long',day:'numeric'});
@@ -264,7 +274,7 @@ function renderReport(data){
           <h4>Unidad / Componente</h4>
           <div class="info-row"><span class="info-key">ID Unidad</span><input class="editable-field" value="${d.unitId||'—'}"/></div>
           <div class="info-row"><span class="info-key">Componente</span><input class="editable-field" value="${d.componentDescription||'—'}"/></div>
-          <div class="info-row"><span class="info-key">Sitio</span><input class="editable-field" value="${d.worksite||'—'}"/></div>
+          <div class="info-row"><span class="info-key">Empresa</span><input class="editable-field" value="${safeVal(empresa || d.worksite)}"/></div>
           <div class="info-row"><span class="info-key">No. Referencia</span><input class="editable-field" value="${d.referenceNo||'—'}"/></div>
         </div>
         <div class="info-cell">
@@ -272,7 +282,7 @@ function renderReport(data){
           <div class="info-row"><span class="info-key">Fabricante</span><input class="editable-field" value="${d.fluidManufacturer||'—'}"/></div>
           <div class="info-row"><span class="info-key">Producto</span><input class="editable-field" value="${d.fluidProduct||'—'}"/></div>
           <div class="info-row"><span class="info-key">Grado</span><input class="editable-field" value="${d.fluidGrade?'ISO '+d.fluidGrade.replace(/iso\s*/i,''):'—'}"/></div>
-          <div class="info-row"><span class="info-key">Evaluado por</span><input class="editable-field" value="${d.evaluatedBy||'—'}"/></div>
+          <div class="info-row"><span class="info-key">Generado por</span><input class="editable-field" value="${safeVal(generadoPor || d.evaluatedBy)}"/></div>
         </div>
       </div>
       <div style="padding:0 36px">
