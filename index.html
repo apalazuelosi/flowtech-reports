@@ -190,8 +190,9 @@ waterCritical = true si el valor de agua está marcado con * o resaltado como cr
     body: JSON.stringify({pdfBase64: b64})
   });
   if(!resp.ok){const t=await resp.text();throw new Error(`API ${resp.status}: ${t}`);}
-  const data = await resp.json();
-  console.log('Respuesta del servidor:', JSON.stringify(data));
+  const text = await resp.text();
+  console.log('Respuesta del servidor:', text);
+  const data = JSON.parse(text);
   return data;
 }
 
