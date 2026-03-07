@@ -1,5 +1,4 @@
 exports.handler = async function(event) {
-  // Handle CORS preflight
   if (event.httpMethod === 'OPTIONS') {
     return {
       statusCode: 200,
@@ -11,6 +10,7 @@ exports.handler = async function(event) {
       body: ''
     };
   }
+
   if (event.httpMethod !== 'POST') {
     return { statusCode: 405, body: 'Method Not Allowed' };
   }
@@ -19,10 +19,12 @@ exports.handler = async function(event) {
     const { pdfBase64 } = JSON.parse(event.body);
 
     const prompt = `Eres un extractor de datos de reportes de análisis de aceite de Bureau Veritas / LOAMS.
-Extrae TODOS los siguientes campos. Si no se encuentra un campo usa null.
-Responde ÚNICAMENTE con un objeto JSON válido, sin markdown ni explicación.
+El PDF puede contener UNA o MÚLTIPLES muestras (una por página).
+Extrae TODAS las muestras que encuentres.
+Responde ÚNICAMENTE con un array JSON válido, sin markdown ni explicación.
+Cada elemento del array debe tener estos campos (usa null si no se encuentra):
 
-{
+[{
   "status": "CRITICAL" o "WARNING" o "NORMAL" o "CAUTION",
   "labNo": "string",
   "sampledDate": "string",
@@ -46,8 +48,7 @@ Responde ÚNICAMENTE con un objeto JSON válido, sin markdown ni explicación.
   "particles38um": number o null,
   "particles70um": number o null,
   "recommendation": "string" o null
-}
-
+}]
 waterCritical = true si el valor de agua está marcado con * o resaltado como crítico.`;
 
     const response = await fetch('https://api.anthropic.com/v1/messages', {
@@ -59,7 +60,7 @@ waterCritical = true si el valor de agua está marcado con * o resaltado como cr
       },
       body: JSON.stringify({
         model: 'claude-sonnet-4-20250514',
-        max_tokens: 1000,
+        max_tokens: 4096,
         messages: [{
           role: 'user',
           content: [
@@ -82,7 +83,6 @@ waterCritical = true si el valor de agua está marcado con * o resaltado como cr
       },
       body: clean
     };
-
   } catch (err) {
     return {
       statusCode: 500,
