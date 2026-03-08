@@ -75,8 +75,7 @@ body{font-family:'Inter Tight',sans-serif;background:#e8e6e3;min-height:100vh;pa
 .kpi-label{font-size:.68rem;color:#999;text-transform:uppercase;letter-spacing:.12em;font-weight:500;margin-bottom:8px}
 .kpi-value{font-size:2rem;font-family:'Orbitron',sans-serif;font-weight:700;color:var(--navy)}
 .kpi-value.critical{color:var(--orange)}
-.kpi-value.warning{color:#b8a000}
-.kpi-unit{font-size:.7rem;color:#aaa;margin-top:4px}
+.kpi-value.warning{color:#b8a000}.kpi-unit{font-size:.7rem;color:#aaa;margin-top:4px}
 .section-header{background:var(--navy);padding:9px 36px;display:flex;align-items:center;gap:10px}
 .section-header h2{font-family:'Orbitron',sans-serif;color:var(--offwhite);font-size:.62rem;letter-spacing:.18em;text-transform:uppercase;font-weight:600}
 .section-dot{width:6px;height:6px;background:var(--orange);border-radius:50%;flex-shrink:0}
@@ -320,11 +319,11 @@ function renderReport(data){
       </div>`;
     }).join('');
 
-    const recHTML=d.recommendation?`
+    const recHTML = d.recommendation ? `
       <div class="rec-section">
         <div class="rec-label">⚠ Nota del Analista</div>
         <textarea class="editable-rec" rows="1">${d.recommendation}</textarea>
-      </div>`:'';
+      </div>` : '';
 
     const paper = document.createElement('div');
     paper.className='report-paper';
@@ -384,8 +383,8 @@ function renderReport(data){
           </div>
           <div class="kpi-card">
             <div class="kpi-label">Contenido de Agua (KF)</div>
-            <div class="kpi-value${d.waterCritical?' critical':''}">${d.waterKFppm!=null?d.waterKFppm.toLocaleString('es-MX'):'N/R'}</div>
-            <div class="kpi-unit">PPM</div>
+            <div class="kpi-value${d.waterKFppm!=null&&d.waterKFppm>=500?' critical':d.waterKFppm!=null&&d.waterKFppm>=250?' warning':''}">${d.waterKFppm!=null?d.waterKFppm.toLocaleString('es-MX'):'N/R'}</div>
+            <div class="kpi-unit">PPM${d.waterKFppm!=null&&d.waterKFppm>=500?' · ⚠ CRÍTICO':d.waterKFppm!=null&&d.waterKFppm>=250?' · PRECAUCIÓN':''}</div>
           </div>
         </div>
       </div>
