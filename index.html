@@ -37,10 +37,27 @@ body{font-family:'Inter Tight',sans-serif;background:#e8e6e3;min-height:100vh;pa
 .report-subtitle{color:var(--gray);font-size:.7rem;margin-top:4px;letter-spacing:.06em}
 .status-bar{padding:13px 36px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #eee}
 .slabel{font-size:.7rem;color:#999;text-transform:uppercase;letter-spacing:.1em;font-weight:500}
-.status-badge{font-family:'Orbitron',sans-serif;font-size:.8rem;font-weight:700;padding:5px 16px;border-radius:4px;letter-spacing:.06em}
+.status-badge{font-family:'Orbitron',sans-serif;font-size:.8rem;font-weight:700;padding:5px 16px;border-radius:4px;letter-spacing:.06em;display:inline-block}
 .status-badge.critical{background:var(--orange);color:white}
 .status-badge.warning{background:var(--yellow);color:var(--navy)}
 .status-badge.normal{background:#1db954;color:white}
+
+/* Status dropdown – hidden by default, shown in edit mode */
+.status-select{
+  display:none;
+  font-family:'Orbitron',sans-serif;font-size:.8rem;font-weight:700;
+  padding:5px 12px;border-radius:4px;letter-spacing:.06em;
+  border:2px dashed var(--orange);background:#fffbe6;color:var(--navy);
+  cursor:pointer;outline:none;
+}
+.edit-mode .status-badge{display:none}
+.edit-mode .status-select{display:inline-block}
+
+@media print{
+  .status-select{display:none!important}
+  .status-badge{display:inline-block!important}
+}
+
 .info-grid{display:grid;grid-template-columns:1fr 1fr 1fr;border-bottom:1px solid #eee}
 .info-cell{padding:16px 22px;border-right:1px solid #eee}
 .info-cell:last-child{border-right:none}
@@ -57,6 +74,7 @@ body{font-family:'Inter Tight',sans-serif;background:#e8e6e3;min-height:100vh;pa
 .kpi-label{font-size:.68rem;color:#999;text-transform:uppercase;letter-spacing:.12em;font-weight:500;margin-bottom:8px}
 .kpi-value{font-size:2rem;font-family:'Orbitron',sans-serif;font-weight:700;color:var(--navy)}
 .kpi-value.critical{color:var(--orange)}
+.kpi-value.warning{color:#b8a000}
 .kpi-unit{font-size:.7rem;color:#aaa;margin-top:4px}
 .section-header{background:var(--navy);padding:9px 36px;display:flex;align-items:center;gap:10px}
 .section-header h2{font-family:'Orbitron',sans-serif;color:var(--offwhite);font-size:.62rem;letter-spacing:.18em;text-transform:uppercase;font-weight:600}
@@ -127,6 +145,13 @@ body{font-family:'Inter Tight',sans-serif;background:#e8e6e3;min-height:100vh;pa
 const NETLIFY_FN = '/.netlify/functions/analyze';
 let editMode = false;
 
+// Status config: value → { label, cssClass }
+const STATUS_OPTIONS = [
+  { value: 'CRITICAL', label: 'CRÍTICO',    cssClass: 'critical' },
+  { value: 'WARNING',  label: 'PRECAUCIÓN', cssClass: 'warning'  },
+  { value: 'NORMAL',   label: 'ACEPTABLE',  cssClass: 'normal'   },
+];
+
 const dropZone = document.getElementById('drop-zone');
 const fileInput = document.getElementById('file-input');
 dropZone.addEventListener('dragover', e=>{e.preventDefault();dropZone.classList.add('drag')});
@@ -140,7 +165,6 @@ async function processFile(file){
   try{
     const b64 = await toBase64(file);
     const data = await extractLabData(b64);
-    console.log('Data a renderizar:', JSON.stringify(data));
     renderReport(data);
   } catch(err){
     console.error('ERROR:', err.message, err.stack);
@@ -193,7 +217,6 @@ Cada elemento del array debe tener estos campos (usa null si no se encuentra):
 }]
 waterCritical = true si el valor de agua está marcado con * o resaltado como crítico.`;
 
-  console.log('Enviando PDF, tamaño b64:', b64.length);
   const resp = await fetch(NETLIFY_FN, {
     method: 'POST',
     headers: {'Content-Type':'application/json'},
@@ -201,13 +224,22 @@ waterCritical = true si el valor de agua está marcado con * o resaltado como cr
   });
   if(!resp.ok){const t=await resp.text();throw new Error(`API ${resp.status}: ${t}`);}
   const text = await resp.text();
-  console.log('Respuesta del servidor:', text);
-  const data = JSON.parse(text);
-  return data;
+  return JSON.parse(text);
+}
+
+// Resolve incoming status (handles CAUTION → WARNING bucket)
+function resolveStatus(raw){
+  const s=(raw||'').toUpperCase();
+  if(s==='CRITICAL') return 'CRITICAL';
+  if(s==='WARNING'||s==='CAUTION') return 'WARNING';
+  return 'NORMAL';
+}
+
+function statusInfo(value){
+  return STATUS_OPTIONS.find(o=>o.value===value) || STATUS_OPTIONS[2];
 }
 
 function renderReport(data){
-  // Normalize to array
   const samples = Array.isArray(data) ? data : [data];
   const empresa = document.getElementById('empresa-input').value.trim() || null;
   const generadoPor = document.getElementById('generado-input').value.trim() || null;
@@ -216,9 +248,13 @@ function renderReport(data){
   const genDate = new Date().toLocaleDateString('es-MX',{year:'numeric',month:'long',day:'numeric'});
 
   samples.forEach((d, idx) => {
-    const s=(d.status||'DESCONOCIDO').toUpperCase();
-    const statusMap={CRITICAL:'CRÍTICO',WARNING:'ADVERTENCIA',CAUTION:'PRECAUCIÓN',NORMAL:'NORMAL'};
-    const badgeClass='status-badge '+(s==='CRITICAL'?'critical':s==='WARNING'||s==='CAUTION'?'warning':'normal');
+    const currentStatus = resolveStatus(d.status);
+    const si = statusInfo(currentStatus);
+
+    // Build status options HTML
+    const optionsHTML = STATUS_OPTIONS.map(o=>
+      `<option value="${o.value}"${o.value===currentStatus?' selected':''}>${o.label}</option>`
+    ).join('');
 
     const particles=[
       {label:'>4 µm  (p/ml)',val:d.particles4um},{label:'>6 µm  (p/ml)',val:d.particles6um},
@@ -238,7 +274,7 @@ function renderReport(data){
     const recHTML=d.recommendation?`
       <div class="rec-section">
         <div class="rec-label">⚠ Nota del Analista</div>
-        <textarea class="editable-rec" rows="1" onload="autoH(this)">${d.recommendation}</textarea>
+        <textarea class="editable-rec" rows="1">${d.recommendation}</textarea>
       </div>`:'';
 
     const paper = document.createElement('div');
@@ -255,7 +291,12 @@ function renderReport(data){
       <div class="status-bar">
         <div>
           <div class="slabel">Estado del Análisis</div>
-          <div style="margin-top:6px"><span class="${badgeClass}">${statusMap[s]||s}</span></div>
+          <div style="margin-top:6px">
+            <span class="status-badge ${si.cssClass}">${si.label}</span>
+            <select class="status-select">
+              ${optionsHTML}
+            </select>
+          </div>
         </div>
         <div style="text-align:right">
           <div class="slabel">Reporte generado</div>
@@ -289,7 +330,7 @@ function renderReport(data){
         <div class="kpi-row">
           <div class="kpi-card">
             <div class="kpi-label">Código de Limpieza ISO</div>
-            <div class="kpi-value${s==='CRITICAL'?' critical':''}">${d.isoCode||'—'}</div>
+            <div class="kpi-value${currentStatus==='CRITICAL'?' critical':''}">${d.isoCode||'—'}</div>
             <div class="kpi-unit">ISO 4406:1999</div>
           </div>
           <div class="kpi-card">
@@ -316,6 +357,41 @@ function renderReport(data){
 
     container.appendChild(paper);
 
+    // Wire up the status dropdown
+    const select = paper.querySelector('.status-select');
+    const badge  = paper.querySelector('.status-badge');
+    const isoValue   = paper.querySelector('.kpi-value');
+    const dots       = paper.querySelectorAll('.section-dot');
+    const recSection = paper.querySelector('.rec-section');
+    const recLabel   = paper.querySelector('.rec-label');
+
+    const accentColors = {
+      CRITICAL: 'var(--orange)',
+      WARNING:  '#c9a800',
+      NORMAL:   '#1db954'
+    };
+
+    function applyAccent(value) {
+      const color = accentColors[value] || accentColors.NORMAL;
+      // ISO code
+      isoValue.className = `kpi-value${value === 'CRITICAL' ? ' critical' : value === 'WARNING' ? ' warning' : ''}`;
+      // Section dots
+      dots.forEach(d => d.style.background = color);
+      // Rec box border + label
+      if (recSection) {
+        recSection.style.borderLeftColor = color;
+        recSection.style.background = value === 'NORMAL' ? '#f5fff8' : value === 'WARNING' ? '#fffde6' : '#fff8f5';
+      }
+      if (recLabel) recLabel.style.color = color;
+    }
+
+    select.addEventListener('change', () => {
+      const chosen = statusInfo(select.value);
+      badge.textContent = chosen.label;
+      badge.className = `status-badge ${chosen.cssClass}`;
+      applyAccent(chosen.value);
+    });
+
     // Auto-height textareas
     paper.querySelectorAll('.editable-rec').forEach(ta=>{
       setTimeout(()=>{ta.style.height='auto';ta.style.height=ta.scrollHeight+'px';},50);
@@ -336,7 +412,7 @@ function toggleEdit(){
   btn.classList.toggle('active',editMode);
   btn.textContent=editMode?'✅ Listo':'✏️ Editar campos';
   document.getElementById('edit-hint').textContent=editMode
-    ?'✏️ Campos en amarillo son editables.'
+    ?'✏️ Campos en amarillo son editables. El estado también se puede cambiar.'
     :'💡 Activa "Editar" para corregir datos antes de guardar.';
 }
 
