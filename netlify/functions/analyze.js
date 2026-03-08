@@ -18,7 +18,7 @@ exports.handler = async function(event) {
   try {
     const { pdfBase64 } = JSON.parse(event.body);
 
-    const prompt = `Eres un experto en análisis de aceite hidráulico y lubricación industrial. Extrae datos de reportes Bureau Veritas / LOAMS.
+    const prompt = `Eres un extractor de datos de reportes de análisis de aceite de Bureau Veritas / LOAMS.
 El PDF puede contener UNA o MÚLTIPLES muestras (una por página).
 Extrae TODAS las muestras que encuentres.
 Responde ÚNICAMENTE con un array JSON válido, sin markdown ni explicación.
@@ -40,22 +40,13 @@ Cada elemento del array debe tener estos campos (usa null si no se encuentra):
   "evaluatedBy": "string",
   "isoCode": "string",
   "waterKFppm": number o null,
-  "waterCritical": true o false,
   "particles4um": number o null,
   "particles6um": number o null,
   "particles14um": number o null,
   "particles21um": number o null,
   "particles38um": number o null,
-  "particles70um": number o null,
-  "recommendation": "string" o null
-}]
-
-Para el campo "recommendation", redacta una nota técnica profesional en español que integre TODOS los hallazgos relevantes de la muestra:
-- Si hay contaminación por partículas elevada (según el código ISO), menciónala con contexto técnico.
-- Para agua: usa estos umbrales → < 250 ppm = normal (no mencionar), 250–499 ppm = precaución (mencionar y recomendar monitoreo), ≥ 500 ppm = crítico (mencionar urgentemente y recomendar acción inmediata como drenado, filtración o cambio de fluido).
-- Si ambos problemas están presentes, redacta una nota unificada y coherente que aborde los dos.
-- Si todo está dentro de parámetros normales, escribe una nota breve confirmando que el fluido está en condiciones aceptables.
-- Tono: técnico, directo, profesional. Máximo 3 oraciones.`;
+  "particles70um": number o null
+}]`;
 
     const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
