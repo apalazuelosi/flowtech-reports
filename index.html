@@ -196,7 +196,11 @@ async function processFile(file){
       const subBytes = await subPdf.save();
 
       // Convert to base64
-      const b64 = btoa(String.fromCharCode(...new Uint8Array(subBytes)));
+      // Safe base64 encoding that won't blow the call stack on large files
+      const bytes = new Uint8Array(subBytes);
+      let binary = '';
+      for(let i = 0; i < bytes.byteLength; i++) binary += String.fromCharCode(bytes[i]);
+      const b64 = btoa(binary);
 
       setProgress(b, totalBatches, start+1, end, totalPages);
       const samples = await extractLabData(b64);
