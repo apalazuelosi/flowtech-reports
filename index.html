@@ -155,6 +155,63 @@ const NETLIFY_FN = '/.netlify/functions/analyze';
 const BATCH_SIZE = 4;
 let editMode = false;
 
+// ISO code parser — returns { p4, p6, p14 } as integers
+function parseISO(code) {
+  if (!code) return null;
+  const parts = code.toString().trim().split('/');
+  if (parts.length !== 3) return null;
+  const [p4, p6, p14] = parts.map(Number);
+  if ([p4, p6, p14].some(isNaN)) return null;
+  return { p4, p6, p14 };
+}
+
+// Particle level: 'critical', 'warning', 'normal'
+function particleLevel(code) {
+  const iso = parseISO(code);
+  if (!iso) return 'normal';
+  if (iso.p4 >= 20 || iso.p6 >= 18 || iso.p14 >= 15) return 'critical';
+  if (iso.p4 >= 18 || iso.p6 >= 16 || iso.p14 >= 13) return 'warning';
+  return 'normal';
+}
+
+// Water level: 'critical', 'warning', 'normal'
+function waterLevel(ppm) {
+  if (ppm == null) return 'normal';
+  if (ppm >= 500) return 'critical';
+  if (ppm >= 250) return 'warning';
+  return 'normal';
+}
+
+// Build the fixed recommendation string
+function buildRecommendation(isoCode, waterKFppm) {
+  const pl = particleLevel(isoCode);
+  const wl = waterLevel(waterKFppm);
+  const ppm = waterKFppm != null ? waterKFppm.toLocaleString('es-MX') : '';
+
+  // Particles only
+  if (wl === 'normal') {
+    if (pl === 'critical') return 'Nivel de contaminación por partículas crítico. Se requiere filtración de alta eficiencia o cambio de fluido a la brevedad para evitar daño al sistema.';
+    if (pl === 'warning')  return 'Se detecta contaminación por partículas en nivel de precaución. Se recomienda programar filtración y monitorear en el próximo ciclo de muestreo.';
+    return 'El fluido presenta niveles de contaminación por partículas dentro de los parámetros aceptables. No se requiere acción correctiva.';
+  }
+
+  // Water only (particles normal)
+  if (pl === 'normal') {
+    if (wl === 'critical') return `Contenido de agua en nivel crítico (${ppm} ppm). Se requiere programar actividad de deshidratación a la brevedad para evitar daño al sistema.`;
+    return `Contenido de agua en nivel de precaución (${ppm} ppm). Se recomienda programar actividad de deshidratación y monitorear en el próximo ciclo de muestreo.`;
+  }
+
+  // Combined scenarios
+  if (pl === 'critical' && wl === 'critical')
+    return `Nivel de contaminación por partículas crítico y contenido de agua crítico (${ppm} ppm). Se requiere filtración de alta eficiencia o cambio de fluido, así como programar actividad de deshidratación a la brevedad para evitar daño al sistema.`;
+  if (pl === 'critical' && wl === 'warning')
+    return `Nivel de contaminación por partículas crítico. Se requiere filtración de alta eficiencia o cambio de fluido a la brevedad. Adicionalmente, el contenido de agua se encuentra en nivel de precaución (${ppm} ppm) — se recomienda programar actividad de deshidratación.`;
+  if (pl === 'warning' && wl === 'critical')
+    return `Se detecta contaminación por partículas en nivel de precaución y contenido de agua crítico (${ppm} ppm). Se recomienda programar filtración preventiva y actividad de deshidratación a la brevedad para evitar daño al sistema.`;
+  // warning + warning
+  return `Se detecta contaminación por partículas y contenido de agua en nivel de precaución (${ppm} ppm). Se recomienda programar filtración y actividad de deshidratación en el próximo ciclo de mantenimiento.`;
+}
+
 // Status config: value → { label, cssClass }
 const STATUS_OPTIONS = [
   { value: 'CRITICAL', label: 'CRÍTICO',    cssClass: 'critical' },
@@ -319,11 +376,12 @@ function renderReport(data){
       </div>`;
     }).join('');
 
-    const recHTML = d.recommendation ? `
+    const rec = buildRecommendation(d.isoCode, d.waterKFppm);
+    const recHTML = `
       <div class="rec-section">
         <div class="rec-label">⚠ Nota del Analista</div>
-        <textarea class="editable-rec" rows="1">${d.recommendation}</textarea>
-      </div>` : '';
+        <textarea class="editable-rec" rows="1">${rec}</textarea>
+      </div>`;
 
     const paper = document.createElement('div');
     paper.className='report-paper';
