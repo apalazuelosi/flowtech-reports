@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
 <title>Flowtech – Reporte de Análisis</title>
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Inter+Tight:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
 <style>
 :root{--navy:#0A1726;--offwhite:#F2F0ED;--orange:#F04600;--gray:#B5B8BD;--yellow:#F9F969}
 *{box-sizing:border-box;margin:0;padding:0}
@@ -124,7 +125,16 @@ body{font-family:'Inter Tight',sans-serif;background:#e8e6e3;min-height:100vh;pa
       <span style="font-size:.76rem;margin-top:4px;color:#bbb">Formato Bureau Veritas / LOAMS</span>
       <input type="file" accept=".pdf,application/pdf" id="file-input"/>
     </div>
-    <div id="processing"><div class="spinner"></div><span>Extrayendo datos con IA…</span></div>
+    <div id="processing">
+  <div class="spinner"></div>
+  <span id="processing-label">Extrayendo datos con IA…</span>
+</div>
+<div id="progress-bar-wrap" style="display:none;margin-top:12px;width:100%">
+  <div style="background:#eee;border-radius:4px;height:6px;overflow:hidden">
+    <div id="progress-bar" style="height:100%;background:var(--orange);width:0%;transition:width .4s ease;border-radius:4px"></div>
+  </div>
+  <div id="progress-text" style="font-size:.75rem;color:#888;margin-top:6px;text-align:center"></div>
+</div>
     <div id="upload-error"></div>
   </div>
 </div>
@@ -143,6 +153,7 @@ body{font-family:'Inter Tight',sans-serif;background:#e8e6e3;min-height:100vh;pa
 
 <script>
 const NETLIFY_FN = '/.netlify/functions/analyze';
+const BATCH_SIZE = 4;
 let editMode = false;
 
 // Status config: value → { label, cssClass }
@@ -163,9 +174,37 @@ async function processFile(file){
   if(!file.name.endsWith('.pdf')&&!file.type.includes('pdf')){showError('Por favor sube un archivo PDF.');return}
   showProcessing(true);
   try{
-    const b64 = await toBase64(file);
-    const data = await extractLabData(b64);
-    renderReport(data);
+    // Read raw bytes for pdf-lib
+    const arrayBuffer = await file.arrayBuffer();
+    const srcPdf = await PDFLib.PDFDocument.load(arrayBuffer);
+    const totalPages = srcPdf.getPageCount();
+    const totalBatches = Math.ceil(totalPages / BATCH_SIZE);
+
+    setProgress(0, totalBatches);
+    const allSamples = [];
+
+    for(let b = 0; b < totalBatches; b++){
+      const start = b * BATCH_SIZE;
+      const end   = Math.min(start + BATCH_SIZE, totalPages);
+
+      // Build a sub-PDF with just these pages
+      const subPdf  = await PDFLib.PDFDocument.create();
+      const indices = [];
+      for(let i = start; i < end; i++) indices.push(i);
+      const copied = await subPdf.copyPages(srcPdf, indices);
+      copied.forEach(p => subPdf.addPage(p));
+      const subBytes = await subPdf.save();
+
+      // Convert to base64
+      const b64 = btoa(String.fromCharCode(...new Uint8Array(subBytes)));
+
+      setProgress(b, totalBatches, start+1, end, totalPages);
+      const samples = await extractLabData(b64);
+      allSamples.push(...(Array.isArray(samples) ? samples : [samples]));
+      setProgress(b+1, totalBatches, start+1, end, totalPages);
+    }
+
+    renderReport(allSamples);
   } catch(err){
     console.error('ERROR:', err.message, err.stack);
     showError('Error al extraer datos: '+err.message);
@@ -174,13 +213,19 @@ async function processFile(file){
   }
 }
 
-function toBase64(file){
-  return new Promise((res,rej)=>{
-    const r=new FileReader();
-    r.onload=()=>res(r.result.split(',')[1]);
-    r.onerror=()=>rej(new Error('Error al leer archivo'));
-    r.readAsDataURL(file);
-  });
+function setProgress(doneBatches, totalBatches, pageStart, pageEnd, totalPages){
+  const pct = Math.round((doneBatches / totalBatches) * 100);
+  document.getElementById('progress-bar').style.width = pct+'%';
+  if(pageStart != null){
+    const batchLabel = totalPages > BATCH_SIZE
+      ? ` (páginas ${pageStart}–${pageEnd} de ${totalPages})`
+      : '';
+    document.getElementById('progress-text').textContent =
+      doneBatches < totalBatches
+        ? `Analizando lote ${doneBatches+1} de ${totalBatches}${batchLabel}…`
+        : `✓ Análisis completo`;
+  }
+  document.getElementById('progress-bar-wrap').style.display = totalBatches > 1 ? 'block' : 'none';
 }
 
 async function extractLabData(b64){
@@ -416,7 +461,15 @@ function toggleEdit(){
     :'💡 Activa "Editar" para corregir datos antes de guardar.';
 }
 
-function showProcessing(on){document.getElementById('processing').style.display=on?'flex':'none';document.getElementById('upload-error').style.display='none';}
+function showProcessing(on){
+  document.getElementById('processing').style.display=on?'flex':'none';
+  if(!on){
+    document.getElementById('progress-bar-wrap').style.display='none';
+    document.getElementById('progress-bar').style.width='0%';
+    document.getElementById('progress-text').textContent='';
+  }
+  document.getElementById('upload-error').style.display='none';
+}
 function showError(msg){const el=document.getElementById('upload-error');el.textContent=msg;el.style.display='block';}
 function resetApp(){
   document.getElementById('upload-screen').style.display='flex';
