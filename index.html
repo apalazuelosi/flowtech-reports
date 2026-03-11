@@ -143,6 +143,7 @@ body{font-family:'Inter Tight',sans-serif;background:#e8e6e3;min-height:100vh;pa
     <div class="toolbar">
       <span class="toolbar-note" id="edit-hint">💡 Activa "Editar" para corregir datos antes de guardar.</span>
       <button class="edit-toggle" id="edit-btn" onclick="toggleEdit()">✏️ Editar campos</button>
+      <button class="btn" onclick="downloadCSV()">⬇ Descargar CSV</button>
       <button class="btn" onclick="resetApp()">← Nuevo reporte</button>
       <button class="btn btn-orange" onclick="window.print()">🖨 Imprimir / Guardar PDF</button>
     </div>
@@ -154,6 +155,9 @@ body{font-family:'Inter Tight',sans-serif;background:#e8e6e3;min-height:100vh;pa
 const NETLIFY_FN = '/.netlify/functions/analyze';
 const BATCH_SIZE = 4;
 let editMode = false;
+let parsedSamples = [];
+let uploadedEmpresa = '';
+let uploadedGeneradoPor = '';
 
 // ISO code parser — returns { p4, p6, p14 } as integers
 function parseISO(code) {
@@ -237,6 +241,8 @@ async function processFile(file){
     const totalBatches = Math.ceil(totalPages / BATCH_SIZE);
 
     setProgress(0, totalBatches);
+    uploadedEmpresa = document.getElementById('empresa-input').value.trim();
+    uploadedGeneradoPor = document.getElementById('generado-input').value.trim();
     const allSamples = [];
 
     for(let b = 0; b < totalBatches; b++){
@@ -264,6 +270,7 @@ async function processFile(file){
       setProgress(b+1, totalBatches, start+1, end, totalPages);
     }
 
+    parsedSamples = allSamples;
     renderReport(allSamples);
   } catch(err){
     console.error('ERROR:', err.message, err.stack);
@@ -520,6 +527,53 @@ function toggleEdit(){
   document.getElementById('edit-hint').textContent=editMode
     ?'✏️ Campos en amarillo son editables. El estado también se puede cambiar.'
     :'💡 Activa "Editar" para corregir datos antes de guardar.';
+}
+
+function downloadCSV(){
+  const headers = [
+    'lab_no','sampled_date','received_date','completed_date',
+    'unit_id','component','empresa','reference_no',
+    'fluid_manufacturer','fluid_product','fluid_grade',
+    'iso_code','water_kf_ppm',
+    'particles_4um','particles_6um','particles_14um',
+    'particles_21um','particles_38um','particles_70um',
+    'status','generated_by','generated_date'
+  ];
+
+  const today = new Date().toISOString().slice(0,10);
+  const statusLabel = {CRITICAL:'CRÍTICO', WARNING:'PRECAUCIÓN', CAUTION:'PRECAUCIÓN', NORMAL:'ACEPTABLE'};
+
+  const rows = parsedSamples.map(d => {
+    const s = (d.status||'').toUpperCase();
+    return [
+      d.labNo, d.sampledDate, d.receivedDate, d.completedDate,
+      d.unitId, d.componentDescription,
+      uploadedEmpresa || d.worksite,
+      d.referenceNo, d.fluidManufacturer, d.fluidProduct,
+      d.fluidGrade ? 'ISO '+d.fluidGrade.replace(/iso\s*/i,'') : '',
+      d.isoCode, d.waterKFppm,
+      d.particles4um, d.particles6um, d.particles14um,
+      d.particles21um, d.particles38um, d.particles70um,
+      statusLabel[s] || s,
+      uploadedGeneradoPor || d.evaluatedBy,
+      today
+    ].map(v => {
+      const val = v == null ? '' : String(v);
+      // Wrap in quotes if value contains comma, quote or newline
+      return val.includes(',') || val.includes('"') || val.includes('\n')
+        ? '"' + val.replace(/"/g, '""') + '"'
+        : val;
+    }).join(',');
+  });
+
+  const csv = [headers.join(','), ...rows].join('\n');
+  const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `flowtech_${today}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
 }
 
 function showProcessing(on){
