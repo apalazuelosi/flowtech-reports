@@ -1,0 +1,10 @@
+# Netlify configuration. (The old `netlify-toml.txt` was inert — a .txt file is
+# never read by Netlify, so the function timeout below was not actually applied.)
+
+[functions]
+  directory = "netlify/functions"
+  node_bundler = "esbuild"
+
+# Give the PDF-extraction function headroom (Opus per 4-page batch).
+[functions.analyze]
+  timeout = 26

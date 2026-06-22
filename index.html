@@ -19,10 +19,11 @@
 
     <div class="profile-select-row">
       <div class="field-block">
-        <label class="field-label" for="profile-select">Perfil de límites</label>
-        <select id="profile-select" class="text-input"></select>
+        <label class="field-label" for="client-select">Cliente</label>
+        <select id="client-select" class="text-input"></select>
       </div>
-      <button class="btn-tertiary" id="manage-profiles-btn" type="button">⚙ Perfiles</button>
+      <button class="btn-tertiary" id="manage-clients-btn" type="button">⚙ Clientes</button>
+      <button class="btn-tertiary" id="history-btn" type="button">📋 Historial</button>
     </div>
 
     <div class="field-block">
@@ -59,6 +60,7 @@
   <div class="report-wrap">
     <div class="toolbar">
       <span class="toolbar-note" id="edit-hint">💡 Activa "Editar" para corregir datos antes de guardar.</span>
+      <span id="save-status" style="font-size:.76rem;color:#1db954;margin-right:8px;font-weight:600"></span>
       <button class="edit-toggle" id="edit-btn" type="button">✏️ Editar campos</button>
       <button class="btn" id="csv-btn" type="button">⬇ Descargar CSV</button>
       <button class="btn" id="new-report-btn" type="button">← Nuevo reporte</button>
@@ -68,8 +70,18 @@
   </div>
 </div>
 
-<!-- Profile manager modal (filled in by profileEditor.js) -->
-<div class="modal-overlay" id="profile-modal"></div>
+<div id="history-screen">
+  <div class="report-wrap">
+    <div class="toolbar">
+      <span class="toolbar-note">📋 Historial de reportes guardados</span>
+      <button class="btn" id="history-back-btn" type="button">← Volver</button>
+    </div>
+    <div class="report-paper" style="padding:6px 4px"><div id="history-list"></div></div>
+  </div>
+</div>
+
+<!-- Client manager modal (filled in by clientEditor.js) -->
+<div class="modal-overlay" id="client-modal"></div>
 
 <script type="module" src="js/app.js"></script>
 </body>

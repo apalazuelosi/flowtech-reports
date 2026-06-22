@@ -36,6 +36,7 @@ function statusGroup(kind, titleLabel, level) {
 export function renderReport(samples, container, ctx) {
   const { empresa, generadoPor, profile } = ctx;
   container.innerHTML = '';
+  const logo = (profile && profile.logo) || 'logo.png';
   const genDate = new Date().toLocaleDateString('es-MX', { year: 'numeric', month: 'long', day: 'numeric' });
 
   samples.forEach((d, idx) => {
@@ -67,7 +68,7 @@ export function renderReport(samples, container, ctx) {
     paper.style.cssText = 'margin-bottom:32px';
     paper.innerHTML = `
       <div class="report-header">
-        <img src="logo.png" alt="Flowtech" style="height:46px;display:block;"/>
+        <img src="${logo}" alt="Flowtech" style="height:46px;max-width:200px;object-fit:contain;display:block;"/>
         <div class="header-right">
           <div class="report-title">Reporte de Análisis de Fluidos</div>
           <div class="report-subtitle">ISO · Contaminación por Partículas · Agua</div>

@@ -112,7 +112,16 @@ select.text-input{appearance:none;background:#fff url("data:image/svg+xml,%3Csvg
 .report-footer{background:#f7f5f2;border-top:1px solid #e8e6e3;padding:12px 36px;display:flex;justify-content:space-between;align-items:center}
 .footer-pg{font-size:.7rem;color:#999;font-weight:500}
 
-/* ---------- Modal (profile editor) ---------- */
+/* ---------- History screen ---------- */
+#history-screen{display:none}
+.history-row{display:flex;align-items:center;gap:14px;padding:13px 16px;border-bottom:1px solid #f0f0f0}
+.history-row:last-child{border-bottom:none}
+.history-row .status-badge{flex-shrink:0;min-width:118px;justify-content:center}
+.hr-main{flex:1;min-width:0}
+.hr-client{font-weight:600;color:var(--navy);font-size:.9rem}
+.hr-meta{font-size:.74rem;color:#999;margin-top:2px}
+
+/* ---------- Modal (client editor) ---------- */
 .modal-overlay{display:none;position:fixed;inset:0;background:rgba(10,23,38,.55);z-index:100;align-items:center;justify-content:center;padding:24px}
 .modal-overlay.open{display:flex}
 .modal{background:#fff;border-radius:14px;max-width:640px;width:100%;max-height:90vh;overflow-y:auto;box-shadow:0 12px 48px rgba(0,0,0,.3)}
