@@ -6,6 +6,7 @@ import { renderReport } from './report.js';
 import { loadClients, getClientsCached, getActiveClient, setActiveClient, isOffline } from './clients.js';
 import { initClientEditor, openClientManager } from './clientEditor.js';
 import { downloadCSV } from './csv.js';
+import { exportHydac } from './hydac.js';
 import { persistReport, fetchHistory, fetchReport, removeReport, renderHistoryList } from './history.js';
 
 let editMode = false;
@@ -179,6 +180,14 @@ async function init() {
   $('new-report-btn').addEventListener('click', resetApp);
   $('print-btn').addEventListener('click', () => window.print());
   $('csv-btn').addEventListener('click', () => { if (currentState) downloadCSV(currentState); });
+  $('hydac-btn').addEventListener('click', async () => {
+    if (!currentState) return;
+    const btn = $('hydac-btn'); const txt = btn.textContent;
+    btn.disabled = true; btn.textContent = 'Generando…';
+    try { await exportHydac(currentState); }
+    catch (err) { alert('No se pudo exportar a HYDAC: ' + err.message); }
+    finally { btn.disabled = false; btn.textContent = txt; }
+  });
 
   initClientEditor(refreshClientSelect);
   await loadClients();
