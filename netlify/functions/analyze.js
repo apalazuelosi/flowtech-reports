@@ -13,7 +13,7 @@ const SAMPLE_SCHEMA = {
   type: 'object',
   additionalProperties: false,
   properties: {
-    status: { type: ['string', 'null'], enum: ['CRITICAL', 'WARNING', 'NORMAL', 'CAUTION', null] },
+    status: { type: 'string', enum: ['CRITICAL', 'WARNING', 'NORMAL', 'CAUTION'] },
     labNo: { type: ['string', 'null'] },
     sampledDate: { type: ['string', 'null'] },
     receivedDate: { type: ['string', 'null'] },
