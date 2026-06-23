@@ -4,9 +4,9 @@
 // a distinct stop-sign for each.
 
 export const LEVELS = {
-  error:    { key: 'error',    label: 'DATO ERRÓNEO', color: '#991b1b' },
-  critical: { key: 'critical', label: 'CRÍTICO',      color: 'var(--orange)' },
-  warning:  { key: 'warning',  label: 'PRECAUCIÓN',   color: 'var(--warn)'   },
+  error:    { key: 'error',    label: 'DATO ERRONEO', color: '#991b1b' },
+  critical: { key: 'critical', label: 'CRITICO',      color: 'var(--orange)' },
+  warning:  { key: 'warning',  label: 'PRECAUCION',   color: 'var(--warn)'   },
   normal:   { key: 'normal',   label: 'ACEPTABLE',    color: 'var(--green)'  },
 };
 

@@ -15,7 +15,7 @@ const COLUMNS = [
   'status', 'generated_by', 'generated_date',
 ];
 
-const STATUS_LABEL = { error: 'DATO ERRÓNEO', critical: 'CRÍTICO', warning: 'PRECAUCIÓN', normal: 'ACEPTABLE' };
+const STATUS_LABEL = { error: 'DATO ERRONEO', critical: 'CRITICO', warning: 'PRECAUCION', normal: 'ACEPTABLE' };
 
 function escapeCsv(v) {
   const val = v == null ? '' : String(v);

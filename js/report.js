@@ -72,12 +72,12 @@ export function renderReport(samples, container, ctx) {
       <div class="report-header">
         <img src="${logo}" alt="Flowtech" style="height:46px;width:auto;max-width:380px;display:block;"/>
         <div class="header-right">
-          <div class="report-title">Reporte de Análisis de Fluidos</div>
+          <div class="report-title">Reporte de Analisis de Fluidos</div>
           <div class="report-subtitle">ISO · Contaminación por Partículas · Agua</div>
         </div>
       </div>
       <div class="status-bar">
-        ${statusGroup('iso', 'Estado · ISO / Partículas', isoLevel)}
+        ${statusGroup('iso', 'Estado · ISO / Particulas', isoLevel)}
         ${statusGroup('water', 'Estado · Contenido de Agua', waterLevel)}
         <div class="status-group right">
           <div class="slabel">Reporte generado</div>
@@ -86,7 +86,7 @@ export function renderReport(samples, container, ctx) {
       </div>
       <div class="info-grid">
         <div class="info-cell">
-          <h4>Información de Muestra</h4>
+          <h4>Informacion de Muestra</h4>
           <div class="info-row"><span class="info-key">No. Lab</span><input class="editable-field" value="${safeVal(d.labNo)}"/></div>
           <div class="info-row"><span class="info-key">Fecha de muestra</span><input class="editable-field" value="${safeVal(d.sampledDate)}"/></div>
           <div class="info-row"><span class="info-key">Recibida</span><input class="editable-field" value="${safeVal(d.receivedDate)}"/></div>
@@ -110,7 +110,7 @@ export function renderReport(samples, container, ctx) {
       <div style="padding:0 36px">
         <div class="kpi-row">
           <div class="kpi-card">
-            <div class="kpi-label">Código de Limpieza ISO</div>
+            <div class="kpi-label">Codigo de Limpieza ISO</div>
             <div class="kpi-value iso-kpi">${safeVal(d.isoCode)}</div>
             <div class="kpi-unit">ISO 4406:1999</div>
             <div class="kpi-target">${isoTarget}</div>
@@ -124,15 +124,15 @@ export function renderReport(samples, container, ctx) {
         </div>
       </div>
       <div class="section-header" style="margin-top:20px">
-        <div class="section-dot iso-dot"></div><h2>Conteo de Partículas</h2>
+        <div class="section-dot iso-dot"></div><h2>Conteo de Particulas</h2>
       </div>
       <div class="results-section">${barsHTML}</div>
       <div class="section-header">
-        <div class="section-dot rec-dot"></div><h2>Recomendación de Mantenimiento</h2>
+        <div class="section-dot rec-dot"></div><h2>Recomendacion de Mantenimiento</h2>
       </div>
       <div style="height:10px"></div>
       <div class="rec-section">
-        <div class="rec-label">Recomendación del Analista</div>
+        <div class="rec-label">Recomendacion del Analista</div>
         <textarea class="editable-rec" rows="1">${rec}</textarea>
       </div>
       <div style="height:16px"></div>

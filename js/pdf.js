@@ -1,17 +1,14 @@
-// One-click PDF export, locked to US Letter regardless of print settings.
-// Each report-paper is rendered at high scale (crisp text + logos) onto its own
-// Letter page.
+// One-click PDF export, locked to US Letter. Each report-paper is temporarily
+// switched to a fixed Letter-proportioned layout (.pdf-page) so the capture
+// fills the whole page, then placed edge-to-edge on its own Letter page.
 //
-// html2canvas clips <textarea>/<input> content, so before capturing we swap
-// every editable field for a plain <div> holding its current value (which
-// renders fully and sharply), then restore the originals afterwards.
+// html2canvas clips <textarea>/<input> content, so we swap each editable field
+// for a plain <div> holding its current value before capturing, then restore.
 
 const LETTER_W = 612; // pt
 const LETTER_H = 792; // pt
-const MARGIN = 8;
-const SCALE = 2.6;
+const SCALE = 2.8;
 
-// Replace editable fields in `paper` with text divs; returns a restore fn.
 function fieldsToText(paper) {
   const swaps = [];
   paper.querySelectorAll('.editable-field, .editable-rec').forEach(el => {
@@ -43,11 +40,10 @@ export async function exportReportPDF() {
   wasEdit.forEach(p => p.classList.remove('edit-mode'));
 
   const pdf = new jsPDF({ unit: 'pt', format: 'letter', compress: true });
-  const maxW = LETTER_W - 2 * MARGIN;
-  const maxH = LETTER_H - 2 * MARGIN;
 
   try {
     for (let i = 0; i < papers.length; i++) {
+      papers[i].classList.add('pdf-page');
       const restore = fieldsToText(papers[i]);
       let canvas;
       try {
@@ -56,17 +52,18 @@ export async function exportReportPDF() {
           backgroundColor: '#ffffff',
           useCORS: true,
           logging: false,
-          windowWidth: papers[i].scrollWidth,
         });
       } finally {
         restore();
+        papers[i].classList.remove('pdf-page');
       }
-
-      let w = maxW;
+      // Fill page width; if the report is taller than a page (dense report),
+      // fall back to fit-by-height so the footer is never clipped.
+      let w = LETTER_W;
       let h = canvas.height * (w / canvas.width);
-      if (h > maxH) { h = maxH; w = canvas.width * (h / canvas.height); }
+      if (h > LETTER_H) { h = LETTER_H; w = canvas.width * (h / canvas.height); }
       const x = (LETTER_W - w) / 2;
-      const y = (LETTER_H - h) / 2; // center vertically too
+      const y = (LETTER_H - h) / 2;
       if (i > 0) pdf.addPage('letter');
       pdf.addImage(canvas.toDataURL('image/png'), 'PNG', x, y, w, h);
     }
