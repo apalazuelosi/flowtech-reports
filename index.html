@@ -21,42 +21,46 @@
     <div style="min-height:52px;display:flex;align-items:center;justify-content:center;margin-bottom:8px">
       <img src="logo.png" alt="Flowtech" style="height:52px;background:#0A1726;border-radius:6px;padding:8px 16px"/>
     </div>
-    <p>Sube el PDF del laboratorio Bureau Veritas / LOAMS para generar un reporte con la marca Flowtech.</p>
+    <div id="upload-form">
+      <p>Sube el PDF del laboratorio Bureau Veritas / LOAMS para generar un reporte con la marca Flowtech.</p>
 
-    <div class="field-block">
-      <div class="label-row">
-        <label class="field-label" for="client-select">Cliente</label>
-        <button class="link-btn" id="manage-clients-btn" type="button">⚙ Gestionar clientes</button>
+      <div class="field-block">
+        <div class="label-row">
+          <label class="field-label" for="client-select">Cliente</label>
+          <button class="link-btn" id="manage-clients-btn" type="button">⚙ Gestionar clientes</button>
+        </div>
+        <select id="client-select" class="text-input"></select>
       </div>
-      <select id="client-select" class="text-input"></select>
-    </div>
 
-    <div class="field-block">
-      <label class="field-label" for="empresa-input">Empresa</label>
-      <input id="empresa-input" class="text-input" type="text" placeholder="Ej. Aceros del Norte"/>
-    </div>
-    <div class="field-block">
-      <label class="field-label" for="generado-input">Generado por</label>
-      <input id="generado-input" class="text-input" type="text" placeholder="Ej. Ramiro Oropeza"/>
-    </div>
+      <div class="field-block">
+        <label class="field-label" for="empresa-input">Empresa</label>
+        <input id="empresa-input" class="text-input" type="text" placeholder="Ej. Aceros del Norte"/>
+      </div>
+      <div class="field-block">
+        <label class="field-label" for="generado-input">Generado por</label>
+        <input id="generado-input" class="text-input" type="text" placeholder="Ej. Ramiro Oropeza"/>
+      </div>
 
-    <div class="drop-zone" id="drop-zone">
-      <svg width="38" height="38" fill="none" stroke="#aaa" stroke-width="1.5" viewBox="0 0 24 24"><path d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M16 8l-4-4-4 4M12 4v12"/></svg>
-      <span>Arrastra el PDF aquí o haz clic para buscar</span>
-      <span style="font-size:.76rem;margin-top:4px;color:#bbb">Formato Bureau Veritas / LOAMS</span>
-      <input type="file" accept=".pdf,application/pdf" id="file-input"/>
+      <div class="drop-zone" id="drop-zone">
+        <svg width="38" height="38" fill="none" stroke="#aaa" stroke-width="1.5" viewBox="0 0 24 24"><path d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M16 8l-4-4-4 4M12 4v12"/></svg>
+        <span>Arrastra el PDF aquí o haz clic para buscar</span>
+        <span style="font-size:.76rem;margin-top:4px;color:#bbb">Formato Bureau Veritas / LOAMS</span>
+        <input type="file" accept=".pdf,application/pdf" id="file-input"/>
+      </div>
+
+      <button class="link-btn" id="history-btn" type="button" style="display:block;margin:18px auto 0;font-size:.86rem">📋 Ver historial de reportes</button>
     </div>
 
     <div id="processing">
       <div class="brand-loader">
-        <img src="loader/p1.png" alt="" style="--ox:106px;--oy:-106px;--orot:6deg;animation-delay:0s"/>
-        <img src="loader/p2.png" alt="" style="--ox:-106px;--oy:106px;--orot:-6deg;animation-delay:0s"/>
-        <img src="loader/p3.png" alt="" style="--ox:-150px;--oy:0px;--orot:6deg;animation-delay:1.5s"/>
-        <img src="loader/p4.png" alt="" style="--ox:150px;--oy:0px;--orot:-6deg;animation-delay:1.5s"/>
-        <img src="loader/p5.png" alt="" style="--ox:-106px;--oy:-106px;--orot:6deg;animation-delay:3s"/>
-        <img src="loader/p6.png" alt="" style="--ox:106px;--oy:106px;--orot:-6deg;animation-delay:3s"/>
-        <img src="loader/p7.png" alt="" style="--ox:106px;--oy:-106px;--orot:6deg;animation-delay:4.5s"/>
-        <img src="loader/p8.png" alt="" style="--ox:-106px;--oy:106px;--orot:-6deg;animation-delay:4.5s"/>
+        <img src="loader/p1.png" alt="" style="--ox:50px;--oy:-50px;--orot:6deg;animation-delay:0s"/>
+        <img src="loader/p2.png" alt="" style="--ox:-50px;--oy:50px;--orot:-6deg;animation-delay:0s"/>
+        <img src="loader/p3.png" alt="" style="--ox:-70px;--oy:0px;--orot:6deg;animation-delay:1.5s"/>
+        <img src="loader/p4.png" alt="" style="--ox:70px;--oy:0px;--orot:-6deg;animation-delay:1.5s"/>
+        <img src="loader/p5.png" alt="" style="--ox:-50px;--oy:-50px;--orot:6deg;animation-delay:3s"/>
+        <img src="loader/p6.png" alt="" style="--ox:50px;--oy:50px;--orot:-6deg;animation-delay:3s"/>
+        <img src="loader/p7.png" alt="" style="--ox:50px;--oy:-50px;--orot:6deg;animation-delay:4.5s"/>
+        <img src="loader/p8.png" alt="" style="--ox:-50px;--oy:50px;--orot:-6deg;animation-delay:4.5s"/>
       </div>
       <span id="processing-label">Extrayendo datos con IA…</span>
     </div>
@@ -67,7 +71,6 @@
       <div id="progress-text" style="font-size:.75rem;color:#888;margin-top:6px;text-align:center"></div>
     </div>
     <div id="upload-error"></div>
-    <button class="link-btn" id="history-btn" type="button" style="display:block;margin:18px auto 0;font-size:.86rem">📋 Ver historial de reportes</button>
   </div>
 </div>
 

@@ -132,6 +132,7 @@ function setProgress(doneBatches, totalBatches, pageStart, pageEnd, totalPages) 
 }
 
 function showProcessing(on) {
+  $('upload-form').style.display = on ? 'none' : 'block';
   $('processing').style.display = on ? 'flex' : 'none';
   if (!on) {
     $('progress-bar-wrap').style.display = 'none';
