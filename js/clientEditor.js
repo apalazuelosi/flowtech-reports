@@ -6,7 +6,11 @@ import {
   getClientsCached, getActiveClient, setActiveClient,
   saveClient, deleteClient, blankClient, getClient, loadClients, isOffline,
 } from './clients.js';
-import { fmtISO } from './classify.js';
+import { fmtISO, isoLimits } from './classify.js';
+
+// A profile's stored ISO threshold may be a number (anchor) or a legacy
+// {p4,p6,p14} object; this returns the anchor code either way.
+const isoAnchor = t => (typeof t === 'number' ? t : t.p4);
 
 let overlay, onChangeCb;
 
@@ -37,7 +41,7 @@ function renderList() {
       ${c.logo ? `<img src="${c.logo}" alt="" style="height:26px;width:26px;object-fit:contain;border-radius:4px;background:#f4f4f4"/>` : ''}
       <div style="flex:1">
         <div class="pi-name">${esc(c.name)}</div>
-        <div class="pi-meta">ISO ${fmtISO(c.iso.warn)} / ${fmtISO(c.iso.crit)} · Agua ${c.water.warn}/${c.water.crit} ppm</div>
+        <div class="pi-meta">ISO ${fmtISO(isoLimits(c.iso.warn))} / ${fmtISO(isoLimits(c.iso.crit))} · Agua ${c.water.warn}/${c.water.crit} ppm</div>
       </div>
       <button class="link-btn pi-edit" data-id="${c.id}">Editar</button>
       ${c._offline ? '' : `<button class="link-btn pi-del" data-id="${c.id}" style="color:#c00">Eliminar</button>`}
@@ -78,16 +82,6 @@ function renderList() {
     });
 }
 
-function isoBoxes(prefix, code) {
-  return `<div class="iso-inputs">
-    <input class="text-input" id="${prefix}-p4" type="number" min="0" max="30" value="${code.p4}"/>
-    <span class="iso-sep">/</span>
-    <input class="text-input" id="${prefix}-p6" type="number" min="0" max="30" value="${code.p6}"/>
-    <span class="iso-sep">/</span>
-    <input class="text-input" id="${prefix}-p14" type="number" min="0" max="30" value="${code.p14}"/>
-  </div>`;
-}
-
 function renderEdit(client) {
   overlay.innerHTML = `
     <div class="modal">
@@ -113,17 +107,18 @@ function renderEdit(client) {
           </div>
         </div>
         <div class="section-divider"></div>
-        <div class="modal-section-title">Límites ISO 4406 (4µm / 6µm / 14µm)</div>
+        <div class="modal-section-title">Límite ISO 4406 — código ancla (4µm)</div>
+        <p style="font-size:.72rem;color:#999;margin:-6px 0 10px;line-height:1.5">Ingresa un solo código (el primer número, 4µm). Los límites de 6µm y 14µm se calculan automáticamente como A‑1 y A‑2, dando más peso al primer número.</p>
         <div class="limits-grid">
           <div class="limit-block">
-            <h5>Precaución a partir de</h5>
-            ${isoBoxes('ce-isow', client.iso.warn)}
-            <span class="hint">Cualquier componente ≥ este código → precaución</span>
+            <h5>Precaución (A)</h5>
+            <input class="text-input" id="ce-isow" type="number" min="0" max="30" value="${isoAnchor(client.iso.warn)}"/>
+            <span class="hint" id="ce-isow-d"></span>
           </div>
           <div class="limit-block">
-            <h5>Crítico a partir de</h5>
-            ${isoBoxes('ce-isoc', client.iso.crit)}
-            <span class="hint">Cualquier componente ≥ este código → crítico</span>
+            <h5>Crítico (A)</h5>
+            <input class="text-input" id="ce-isoc" type="number" min="0" max="30" value="${isoAnchor(client.iso.crit)}"/>
+            <span class="hint" id="ce-isoc-d"></span>
           </div>
         </div>
         <div class="section-divider"></div>
@@ -153,6 +148,16 @@ function renderEdit(client) {
   });
   clearBtn.onclick = () => { logoData = null; preview.style.display = 'none'; clearBtn.style.display = 'none'; };
 
+  // Live "→ A / A-1 / A-2" preview under each ISO anchor input.
+  const updIso = () => {
+    const w = num('ce-isow'), c = num('ce-isoc');
+    overlay.querySelector('#ce-isow-d').textContent = `→ ${w} / ${w - 1} / ${w - 2}`;
+    overlay.querySelector('#ce-isoc-d').textContent = `→ ${c} / ${c - 1} / ${c - 2}`;
+  };
+  overlay.querySelector('#ce-isow').addEventListener('input', updIso);
+  overlay.querySelector('#ce-isoc').addEventListener('input', updIso);
+  updIso();
+
   overlay.querySelector('#ce-x').onclick = close;
   overlay.querySelector('#ce-back').onclick = renderList;
   overlay.querySelector('#ce-save').onclick = async () => {
@@ -162,7 +167,7 @@ function renderEdit(client) {
     client.name = name;
     client.default_generated_by = val('ce-genby').trim() || null;
     client.logo = logoData;
-    client.iso = { warn: readIso('ce-isow'), crit: readIso('ce-isoc') };
+    client.iso = { warn: num('ce-isow'), crit: num('ce-isoc') };
     client.water = { warn: num('ce-watw'), crit: num('ce-watc') };
     const btn = overlay.querySelector('#ce-save');
     btn.disabled = true; btn.textContent = 'Guardando…';
@@ -180,4 +185,3 @@ function renderEdit(client) {
 
 const val = id => document.getElementById(id).value;
 const num = id => Number(document.getElementById(id).value) || 0;
-const readIso = prefix => ({ p4: num(prefix + '-p4'), p6: num(prefix + '-p6'), p14: num(prefix + '-p14') });

@@ -23,13 +23,23 @@ export function parseISO(code) {
 // Worst-component classification: a measured ISO is CRITICAL if any component
 // meets/exceeds the profile's critical code, WARNING if any meets/exceeds the
 // warn code, else NORMAL.
+// A profile's ISO limit is a single anchor code A (for the 4µm / first number);
+// the 6µm and 14µm limits are A-1 and A-2. This keeps the first number dominant
+// so a borderline 6µm/14µm doesn't push the whole sample up a category.
+// Accepts a number (new anchor form) or a legacy {p4,p6,p14} object (uses p4).
+export function isoLimits(threshold) {
+  const a = typeof threshold === 'number' ? threshold : threshold.p4;
+  return { p4: a, p6: a - 1, p14: a - 2 };
+}
+
 export function classifyISO(isoCode, profile) {
   const iso = parseISO(isoCode);
   if (!iso) return 'normal';
   // Cumulative counts must decrease with size: >4µm ≥ >6µm ≥ >14µm. A larger
   // code on a finer channel is physically impossible → flag as erroneous.
   if (iso.p4 < iso.p6 || iso.p6 < iso.p14) return 'error';
-  const { warn, crit } = profile.iso;
+  const warn = isoLimits(profile.iso.warn);
+  const crit = isoLimits(profile.iso.crit);
   if (iso.p4 >= crit.p4 || iso.p6 >= crit.p6 || iso.p14 >= crit.p14) return 'critical';
   if (iso.p4 >= warn.p4 || iso.p6 >= warn.p6 || iso.p14 >= warn.p14) return 'warning';
   return 'normal';

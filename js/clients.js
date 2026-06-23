@@ -11,7 +11,9 @@ import { load, save } from './storage.js';
 const ACTIVE_KEY = 'activeClientId';
 
 export const DEFAULT_LIMITS = {
-  iso: { warn: { p4: 18, p6: 16, p14: 13 }, crit: { p4: 20, p6: 18, p14: 15 } },
+  // ISO limits are single anchor codes (the 4µm/first number); 6µm and 14µm
+  // limits derive as A-1 and A-2. See isoLimits() in classify.js.
+  iso: { warn: 18, crit: 20 },
   water: { warn: 250, crit: 500 },
 };
 

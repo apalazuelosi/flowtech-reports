@@ -3,7 +3,7 @@
 // active company profile, plus an auto-generated recommendation that stays in
 // sync when the analyst overrides a status in edit mode.
 
-import { LEVELS, classifyISO, classifyWater, parseISO, fmtISO } from './classify.js';
+import { LEVELS, classifyISO, classifyWater, parseISO, fmtISO, isoLimits } from './classify.js';
 import { buildRecommendation } from './recommendation.js';
 
 const LEVEL_ORDER = ['normal', 'warning', 'critical', 'error'];
@@ -60,7 +60,7 @@ export function renderReport(samples, container, ctx) {
       </div>`;
     }).join('');
 
-    const isoTarget = `Límite: ${fmtISO(profile.iso.warn)} (prec.) · ${fmtISO(profile.iso.crit)} (crít.)`;
+    const isoTarget = `Límite: ${fmtISO(isoLimits(profile.iso.warn))} (prec.) · ${fmtISO(isoLimits(profile.iso.crit))} (crít.)`;
     const waterTarget = `Límite: ${profile.water.warn.toLocaleString('es-MX')} (prec.) · ${profile.water.crit.toLocaleString('es-MX')} ppm (crít.)`;
 
     const rec = buildRecommendation(isoLevel, waterLevel, d.waterKFppm);
