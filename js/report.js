@@ -132,7 +132,7 @@ export function renderReport(samples, container, ctx) {
       </div>
       <div style="height:10px"></div>
       <div class="rec-section">
-        <div class="rec-label">⚠ Nota del Analista</div>
+        <div class="rec-label">Recomendación del Analista</div>
         <textarea class="editable-rec" rows="1">${rec}</textarea>
       </div>
       <div style="height:16px"></div>

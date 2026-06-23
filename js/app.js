@@ -7,6 +7,7 @@ import { loadClients, getClientsCached, getActiveClient, getClient, setActiveCli
 import { initClientEditor, openClientManager } from './clientEditor.js';
 import { downloadCSV } from './csv.js';
 import { exportHydac } from './hydac.js';
+import { exportReportPDF } from './pdf.js';
 import { persistReport, updateSavedReport, fetchHistory, fetchReport, removeReport, renderHistoryList } from './history.js';
 
 let editMode = false;
@@ -240,6 +241,13 @@ async function init() {
   $('edit-btn').addEventListener('click', toggleEdit);
   $('new-report-btn').addEventListener('click', resetApp);
   $('print-btn').addEventListener('click', () => window.print());
+  $('pdf-btn').addEventListener('click', async () => {
+    const btn = $('pdf-btn'); const txt = btn.textContent;
+    btn.disabled = true; btn.textContent = 'Generando…';
+    try { await exportReportPDF(); }
+    catch (err) { alert('No se pudo generar el PDF: ' + err.message); }
+    finally { btn.disabled = false; btn.textContent = txt; }
+  });
   $('csv-btn').addEventListener('click', () => { if (currentState) downloadCSV(currentState); });
   $('hydac-btn').addEventListener('click', async () => {
     if (!currentState) return;

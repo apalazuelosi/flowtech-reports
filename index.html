@@ -8,6 +8,8 @@
 <link rel="stylesheet" href="css/styles.css"/>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
 <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
 <body>
 
@@ -66,10 +68,11 @@
       </label>
       <span id="save-status" style="font-size:.76rem;color:#1db954;margin-right:8px;font-weight:600"></span>
       <button class="edit-toggle" id="edit-btn" type="button">✏️ Editar campos</button>
-      <button class="btn" id="csv-btn" type="button">⬇ Descargar CSV</button>
-      <button class="btn" id="hydac-btn" type="button">⬇ Exportar HYDAC</button>
+      <button class="btn" id="csv-btn" type="button">⬇ CSV</button>
+      <button class="btn" id="hydac-btn" type="button">⬇ HYDAC</button>
+      <button class="btn" id="print-btn" type="button">🖨 Imprimir</button>
       <button class="btn" id="new-report-btn" type="button">← Nuevo reporte</button>
-      <button class="btn btn-orange" id="print-btn" type="button">🖨 Imprimir / Guardar PDF</button>
+      <button class="btn btn-orange" id="pdf-btn" type="button">⬇ Descargar PDF</button>
     </div>
     <div id="reports-container"></div>
   </div>
