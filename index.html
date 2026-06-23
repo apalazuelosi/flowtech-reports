@@ -20,17 +20,16 @@
     </div>
     <p>Sube el PDF del laboratorio Bureau Veritas / LOAMS para generar un reporte con la marca Flowtech.</p>
 
-    <div class="profile-select-row">
-      <div class="field-block">
+    <div class="field-block">
+      <div class="label-row">
         <label class="field-label" for="client-select">Cliente</label>
-        <select id="client-select" class="text-input"></select>
+        <button class="link-btn" id="manage-clients-btn" type="button">⚙ Gestionar clientes</button>
       </div>
-      <button class="btn-tertiary" id="manage-clients-btn" type="button">⚙ Clientes</button>
-      <button class="btn-tertiary" id="history-btn" type="button">📋 Historial</button>
+      <select id="client-select" class="text-input"></select>
     </div>
 
     <div class="field-block">
-      <label class="field-label" for="empresa-input">Empresa / Cliente</label>
+      <label class="field-label" for="empresa-input">Empresa</label>
       <input id="empresa-input" class="text-input" type="text" placeholder="Ej. Aceros del Norte"/>
     </div>
     <div class="field-block">
@@ -56,6 +55,7 @@
       <div id="progress-text" style="font-size:.75rem;color:#888;margin-top:6px;text-align:center"></div>
     </div>
     <div id="upload-error"></div>
+    <button class="link-btn" id="history-btn" type="button" style="display:block;margin:18px auto 0;font-size:.86rem">📋 Ver historial de reportes</button>
   </div>
 </div>
 

@@ -13,6 +13,8 @@ body{font-family:'Inter Tight',sans-serif;background:#e8e6e3;min-height:100vh;pa
 .text-input{width:100%;padding:10px 14px;border:1.5px solid #ddd;border-radius:8px;font-family:'Inter Tight',sans-serif;font-size:.88rem;color:#333;outline:none;transition:.2s}
 .text-input:focus{border-color:var(--orange)}
 .field-block{margin-bottom:16px;text-align:left}
+.label-row{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px}
+.label-row .field-label{margin-bottom:0}
 .field-row{display:flex;gap:8px;align-items:flex-end}
 .field-row .field-block{flex:1;margin-bottom:0}
 
