@@ -24,9 +24,21 @@ body{font-family:'Inter Tight',sans-serif;background:#e8e6e3;min-height:100vh;pa
 .drop-zone span{display:block;color:#888;font-size:.88rem}
 .drop-zone input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
 
-#processing{display:none;justify-content:center;margin-top:20px;gap:12px;color:var(--navy);font-weight:500;align-items:center}
+#processing{display:none;flex-direction:column;justify-content:center;align-items:center;margin-top:24px;gap:16px;color:var(--navy);font-weight:500}
 .spinner{width:22px;height:22px;border:3px solid var(--gray);border-top-color:var(--orange);border-radius:50%;animation:spin .8s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
+
+/* Brand loader: 8 monogram pieces fly in and assemble, looping (from Claude design) */
+.brand-loader{position:relative;width:190px;height:190px}
+.brand-loader img{position:absolute;inset:0;width:100%;height:100%;transform-origin:center;opacity:0;animation:bl-assemble 6s cubic-bezier(.2,1.12,.34,1) infinite}
+@keyframes bl-assemble{
+  0%   {opacity:0;transform:translate(var(--ox),var(--oy)) rotate(var(--orot))}
+  3%   {opacity:1;transform:translate(calc(var(--ox)*0.82),calc(var(--oy)*0.82)) rotate(var(--orot))}
+  13%  {opacity:1;transform:translate(0,0) rotate(0deg)}
+  21%  {opacity:1;transform:translate(0,0) rotate(0deg)}
+  25%  {opacity:0;transform:translate(calc(var(--ox)*0.4),calc(var(--oy)*0.4)) rotate(0deg)}
+  100% {opacity:0;transform:translate(var(--ox),var(--oy)) rotate(var(--orot))}
+}
 #upload-error{display:none;margin-top:14px;color:var(--orange);font-size:.83rem}
 #progress-bar-wrap{display:none;margin-top:12px;width:100%}
 
