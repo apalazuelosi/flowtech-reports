@@ -14,19 +14,19 @@ const SAMPLE_SCHEMA = {
   additionalProperties: false,
   properties: {
     status: { type: 'string', enum: ['CRITICAL', 'WARNING', 'NORMAL', 'CAUTION'] },
-    labNo: { type: ['string', 'null'] },
-    sampledDate: { type: ['string', 'null'] },
-    receivedDate: { type: ['string', 'null'] },
-    completedDate: { type: ['string', 'null'] },
-    unitId: { type: ['string', 'null'] },
-    componentDescription: { type: ['string', 'null'] },
-    worksite: { type: ['string', 'null'] },
-    referenceNo: { type: ['string', 'null'] },
-    fluidManufacturer: { type: ['string', 'null'] },
-    fluidProduct: { type: ['string', 'null'] },
-    fluidGrade: { type: ['string', 'null'] },
-    evaluatedBy: { type: ['string', 'null'] },
-    isoCode: { type: ['string', 'null'] },
+    labNo: { type: 'string' },
+    sampledDate: { type: 'string' },
+    receivedDate: { type: 'string' },
+    completedDate: { type: 'string' },
+    unitId: { type: 'string' },
+    componentDescription: { type: 'string' },
+    worksite: { type: 'string' },
+    referenceNo: { type: 'string' },
+    fluidManufacturer: { type: 'string' },
+    fluidProduct: { type: 'string' },
+    fluidGrade: { type: 'string' },
+    evaluatedBy: { type: 'string' },
+    isoCode: { type: 'string' },
     waterKFppm: { type: ['number', 'null'] },
     waterCritical: { type: ['boolean', 'null'] },
     particles4um: { type: ['number', 'null'] },
@@ -57,7 +57,8 @@ const RESULT_SCHEMA = {
 const PROMPT = `Eres un extractor de datos de reportes de análisis de aceite de Bureau Veritas / LOAMS.
 El PDF puede contener UNA o MÚLTIPLES muestras (típicamente una por página).
 Extrae TODAS las muestras que encuentres y devuélvelas en el campo "samples".
-Usa null para cualquier campo que no encuentres.
+Para campos de texto que no encuentres usa cadena vacía "". Para valores numéricos
+(agua, partículas) que no encuentres usa null.
 waterCritical = true si el valor de agua está marcado con * o resaltado como crítico.
 Para waterKFppm y los conteos de partículas, devuelve solo el número (sin unidades ni comas).`;
 

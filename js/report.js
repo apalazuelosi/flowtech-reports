@@ -9,7 +9,7 @@ import { buildRecommendation } from './recommendation.js';
 const LEVEL_ORDER = ['normal', 'warning', 'critical'];
 
 function safeVal(v) {
-  return (v ?? '—').toString()
+  return (v == null || v === '' ? '—' : v).toString()
     .replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/'/g, '&#39;')
     .replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
