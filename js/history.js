@@ -5,7 +5,7 @@
 import { getReports, getReport, deleteReport, saveReport, updateReport } from './api.js';
 import { classifyISO, classifyWater, overallStatus, LEVELS } from './classify.js';
 
-const RANK = { normal: 0, warning: 1, critical: 2 };
+const RANK = { normal: 0, warning: 1, critical: 2, error: 3 };
 const esc = s => (s || '').toString().replace(/</g, '&lt;').replace(/"/g, '&quot;');
 
 // Worst overall status across all samples, per the report's own limits.
@@ -59,7 +59,7 @@ export function renderHistoryList(container, rows, { onOpen, onDelete }) {
     const L = LEVELS[r.overall_status] || LEVELS.normal;
     const date = new Date(r.created_at).toLocaleString('es-MX', { dateStyle: 'medium', timeStyle: 'short' });
     return `<div class="history-row">
-      <span class="status-badge ${L.key}"><span class="badge-icon">${L.icon}</span>${L.label}</span>
+      <span class="status-badge ${L.key}">${L.label}</span>
       <div class="hr-main">
         <div class="hr-client">${esc(r.client_name) || '—'}</div>
         <div class="hr-meta">${date} · ${r.sample_count} muestra(s)${r.generated_by ? ' · ' + esc(r.generated_by) : ''}</div>

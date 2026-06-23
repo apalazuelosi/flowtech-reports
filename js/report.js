@@ -6,7 +6,7 @@
 import { LEVELS, classifyISO, classifyWater, parseISO, fmtISO } from './classify.js';
 import { buildRecommendation } from './recommendation.js';
 
-const LEVEL_ORDER = ['normal', 'warning', 'critical'];
+const LEVEL_ORDER = ['normal', 'warning', 'critical', 'error'];
 
 function safeVal(v) {
   return (v == null || v === '' ? '—' : v).toString()
@@ -26,7 +26,7 @@ function statusGroup(kind, titleLabel, level) {
     <div class="status-group" data-kind="${kind}">
       <div class="slabel">${titleLabel}</div>
       <div class="badge-wrap">
-        <span class="status-badge ${L.key}"><span class="badge-icon">${L.icon}</span>${L.label}</span>
+        <span class="status-badge ${L.key}">${L.label}</span>
         <select class="status-select">${badgeOptions(level)}</select>
       </div>
     </div>`;
@@ -167,7 +167,9 @@ function wirePaper(paper, sample) {
   const recBox = paper.querySelector('.editable-rec');
 
   function kpiClass(level) {
-    return level === 'critical' ? ' critical' : level === 'warning' ? ' warning' : '';
+    return level === 'error' ? ' error'
+      : level === 'critical' ? ' critical'
+      : level === 'warning' ? ' warning' : '';
   }
   const recBg = { critical: '#fff8f5', warning: '#fffde6', normal: '#f5fff8' };
 
@@ -184,7 +186,7 @@ function wirePaper(paper, sample) {
     waterKpi.className = 'kpi-value water-kpi' + kpiClass(waterLevel);
     isoDot.style.background = LEVELS[isoLevel].color;
 
-    const worse = ['critical', 'warning', 'normal'].find(l => isoLevel === l || waterLevel === l);
+    const worse = ['error', 'critical', 'warning', 'normal'].find(l => isoLevel === l || waterLevel === l);
     recDot.style.background = LEVELS[worse].color;
     recSection.style.borderLeftColor = LEVELS[worse].color;
     recSection.style.background = recBg[worse];
@@ -199,7 +201,7 @@ function wirePaper(paper, sample) {
       g.level = g.select.value;
       const L = LEVELS[g.level];
       g.badge.className = `status-badge ${L.key}`;
-      g.badge.innerHTML = `<span class="badge-icon">${L.icon}</span>${L.label}`;
+      g.badge.textContent = L.label;
       apply();
     });
   });

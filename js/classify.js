@@ -4,9 +4,10 @@
 // a distinct stop-sign for each.
 
 export const LEVELS = {
-  critical: { key: 'critical', label: 'CRÍTICO',    icon: '⛔', color: 'var(--orange)' },
-  warning:  { key: 'warning',  label: 'PRECAUCIÓN', icon: '⚠️', color: 'var(--warn)'   },
-  normal:   { key: 'normal',   label: 'ACEPTABLE',  icon: '✅', color: 'var(--green)'  },
+  error:    { key: 'error',    label: 'DATO ERRÓNEO', color: '#991b1b' },
+  critical: { key: 'critical', label: 'CRÍTICO',      color: 'var(--orange)' },
+  warning:  { key: 'warning',  label: 'PRECAUCIÓN',   color: 'var(--warn)'   },
+  normal:   { key: 'normal',   label: 'ACEPTABLE',    color: 'var(--green)'  },
 };
 
 // Parse a "18/16/13" ISO 4406 code → { p4, p6, p14 } of integers, or null.
@@ -25,6 +26,9 @@ export function parseISO(code) {
 export function classifyISO(isoCode, profile) {
   const iso = parseISO(isoCode);
   if (!iso) return 'normal';
+  // Cumulative counts must decrease with size: >4µm ≥ >6µm ≥ >14µm. A larger
+  // code on a finer channel is physically impossible → flag as erroneous.
+  if (iso.p4 < iso.p6 || iso.p6 < iso.p14) return 'error';
   const { warn, crit } = profile.iso;
   if (iso.p4 >= crit.p4 || iso.p6 >= crit.p6 || iso.p14 >= crit.p14) return 'critical';
   if (iso.p4 >= warn.p4 || iso.p6 >= warn.p6 || iso.p14 >= warn.p14) return 'warning';
@@ -41,7 +45,7 @@ export function classifyWater(ppm, profile) {
 
 // The overall sample status is the worse of the two (used for history badges,
 // sorting, etc.). Order: critical > warning > normal.
-const RANK = { critical: 2, warning: 1, normal: 0 };
+const RANK = { error: 3, critical: 2, warning: 1, normal: 0 };
 export function overallStatus(isoLevel, waterLevel) {
   return RANK[isoLevel] >= RANK[waterLevel] ? isoLevel : waterLevel;
 }

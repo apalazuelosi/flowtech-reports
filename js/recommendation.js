@@ -6,6 +6,11 @@
 export function buildRecommendation(isoLevel, waterLevel, waterPpm) {
   const ppm = waterPpm != null ? waterPpm.toLocaleString('es-MX') : '';
 
+  // Inconsistent particle data takes precedence over any severity assessment.
+  if (isoLevel === 'error') {
+    return 'El conteo de partículas es inconsistente: el código ISO no es físicamente válido (un tamaño de partícula mayor reporta más conteo que uno menor, cuando debería ser igual o menor). Se recomienda repetir el muestreo y verificar el resultado del laboratorio antes de emitir un diagnóstico.';
+  }
+
   // Particles only (water normal)
   if (waterLevel === 'normal') {
     if (isoLevel === 'critical') return 'La contaminación por partículas alcanza un nivel crítico que compromete la confiabilidad del sistema. Se requiere filtración de alta eficiencia o cambio de fluido a la brevedad para prevenir el desgaste acelerado de los componentes.';
