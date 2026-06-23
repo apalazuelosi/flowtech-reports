@@ -4,7 +4,10 @@
 // Uses structured outputs (output_config.format) so the model is constrained to
 // the exact schema — no markdown-fence stripping, no malformed-JSON failures.
 
-const MODEL = 'claude-opus-4-8';
+// Sonnet is fast enough to finish a page-batch inside Netlify's 26s function
+// timeout (Opus was too slow and got killed mid-extraction). It's highly
+// accurate for this structured tabular extraction.
+const MODEL = 'claude-sonnet-4-6';
 
 // One sample's schema. Strict structured outputs requires every property listed
 // in `required` and `additionalProperties: false`; nullable fields use a

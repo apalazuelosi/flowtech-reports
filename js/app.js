@@ -134,12 +134,14 @@ function setProgress(doneBatches, totalBatches, pageStart, pageEnd, totalPages) 
 function showProcessing(on) {
   $('upload-form').style.display = on ? 'none' : 'block';
   $('processing').style.display = on ? 'flex' : 'none';
-  if (!on) {
+  if (on) {
+    $('upload-error').style.display = 'none'; // clear stale error only when starting
+  } else {
     $('progress-bar-wrap').style.display = 'none';
     $('progress-bar').style.width = '0%';
     $('progress-text').textContent = '';
+    // NOTE: do not hide upload-error here — it would swallow a just-shown error.
   }
-  $('upload-error').style.display = 'none';
 }
 
 function showError(msg) {
