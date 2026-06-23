@@ -30,12 +30,14 @@ body{font-family:'Inter Tight',sans-serif;background:#e8e6e3;min-height:100vh;pa
 
 /* Brand loader: 8 monogram pieces fly in and assemble, looping (from Claude design) */
 .brand-loader{position:relative;width:96px;height:96px}
-/* All 8 pieces move in sync: fly in, form the full monogram, hold, disperse, loop. */
-.brand-loader img{position:absolute;inset:0;width:100%;height:100%;transform-origin:center;opacity:0;animation:bl-assemble 3s ease-in-out infinite}
+/* Pieces flow through center one after another (staggered), each visible only
+   briefly so they never pile up into a blob. */
+.brand-loader img{position:absolute;inset:0;width:100%;height:100%;transform-origin:center;opacity:0;animation:bl-assemble 5s ease-in-out infinite}
 @keyframes bl-assemble{
   0%   {opacity:0;transform:translate(var(--ox),var(--oy)) rotate(var(--orot))}
-  25%  {opacity:1;transform:translate(0,0) rotate(0deg)}
-  58%  {opacity:1;transform:translate(0,0) rotate(0deg)}
+  6%   {opacity:1;transform:translate(0,0) rotate(0deg)}
+  15%  {opacity:1;transform:translate(0,0) rotate(0deg)}
+  22%  {opacity:0;transform:translate(calc(var(--ox)*-.4),calc(var(--oy)*-.4)) rotate(0deg)}
   100% {opacity:0;transform:translate(var(--ox),var(--oy)) rotate(var(--orot))}
 }
 #upload-error{display:none;margin-top:14px;color:var(--orange);font-size:.83rem}
