@@ -70,7 +70,7 @@ export function renderReport(samples, container, ctx) {
     paper.style.cssText = 'margin-bottom:32px';
     paper.innerHTML = `
       <div class="report-header">
-        <img src="${logo}" alt="Flowtech" style="height:46px;max-width:200px;object-fit:contain;display:block;"/>
+        <img src="${logo}" alt="Flowtech" style="height:46px;width:auto;max-width:380px;display:block;"/>
         <div class="header-right">
           <div class="report-title">Reporte de Análisis de Fluidos</div>
           <div class="report-subtitle">ISO · Contaminación por Partículas · Agua</div>
