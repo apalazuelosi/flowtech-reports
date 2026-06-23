@@ -40,8 +40,10 @@ export function renderReport(samples, container, ctx) {
   const genDate = new Date().toLocaleDateString('es-MX', { year: 'numeric', month: 'long', day: 'numeric' });
 
   samples.forEach((d, idx) => {
-    const isoLevel = classifyISO(d.isoCode, profile);
-    const waterLevel = classifyWater(d.waterKFppm, profile);
+    // Respect a previously-set status (manual override or reopened report);
+    // otherwise classify against the active profile.
+    const isoLevel = d._isoLevel || classifyISO(d.isoCode, profile);
+    const waterLevel = d._waterLevel || classifyWater(d.waterKFppm, profile);
 
     const particles = [
       { label: '>4 µm  (p/ml)', val: d.particles4um }, { label: '>6 µm  (p/ml)', val: d.particles6um },
@@ -172,6 +174,11 @@ function wirePaper(paper, sample) {
   function apply() {
     const isoLevel = groups.iso.level;
     const waterLevel = groups.water.level;
+
+    // Record the displayed status on the sample so exports/history reflect
+    // manual overrides instead of recomputing.
+    sample._isoLevel = isoLevel;
+    sample._waterLevel = waterLevel;
 
     isoKpi.className = 'kpi-value iso-kpi' + kpiClass(isoLevel);
     waterKpi.className = 'kpi-value water-kpi' + kpiClass(waterLevel);

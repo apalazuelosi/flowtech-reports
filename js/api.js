@@ -27,4 +27,5 @@ export const nextSeq = (key) => req('/seq', { method: 'POST', body: { key } }).t
 export const getReports = () => req('/reports');
 export const getReport = (id) => req(`/reports?id=${encodeURIComponent(id)}`);
 export const saveReport = (report) => req('/reports', { method: 'POST', body: report });
+export const updateReport = (id, fields) => req('/reports', { method: 'POST', body: { id, ...fields } });
 export const deleteReport = (id) => req(`/reports?id=${encodeURIComponent(id)}`, { method: 'DELETE' });

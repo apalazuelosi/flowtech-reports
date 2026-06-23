@@ -2,7 +2,7 @@
 // saved-reports list. A report stores its samples plus a snapshot of the limits
 // used, so it re-renders identically later regardless of profile changes.
 
-import { getReports, getReport, deleteReport, saveReport } from './api.js';
+import { getReports, getReport, deleteReport, saveReport, updateReport } from './api.js';
 import { classifyISO, classifyWater, overallStatus, LEVELS } from './classify.js';
 
 const RANK = { normal: 0, warning: 1, critical: 2 };
@@ -12,7 +12,9 @@ const esc = s => (s || '').toString().replace(/</g, '&lt;').replace(/"/g, '&quot
 function worstStatus(samples, profile) {
   let worst = 'normal';
   for (const d of samples) {
-    const lv = overallStatus(classifyISO(d.isoCode, profile), classifyWater(d.waterKFppm, profile));
+    const isoLv = d._isoLevel || classifyISO(d.isoCode, profile);
+    const waterLv = d._waterLevel || classifyWater(d.waterKFppm, profile);
+    const lv = overallStatus(isoLv, waterLv);
     if (RANK[lv] > RANK[worst]) worst = lv;
   }
   return worst;
@@ -30,6 +32,17 @@ export async function persistReport(state) {
     sample_count: state.samples.length,
     samples: state.samples,
     profile: state.profile,
+  });
+}
+
+// Re-save an existing report after manual edits (status overrides), so the
+// stored copy matches what the analyst approved.
+export async function updateSavedReport(id, state) {
+  if (!id) return null;
+  return updateReport(id, {
+    overall_status: worstStatus(state.samples, state.profile),
+    sample_count: state.samples.length,
+    samples: state.samples,
   });
 }
 

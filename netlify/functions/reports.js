@@ -28,7 +28,18 @@ exports.handler = endpoint(async (event) => {
   }
 
   if (event.httpMethod === 'POST') {
-    const incoming = pick(JSON.parse(event.body || '{}'));
+    const body = JSON.parse(event.body || '{}');
+    const incoming = pick(body);
+    // With an id → update the existing report (manual edits committed);
+    // without → insert a new one.
+    if (body.id) {
+      const rows = await sb(`reports?id=eq.${encodeURIComponent(body.id)}`, {
+        method: 'PATCH',
+        body: incoming,
+        prefer: 'return=representation',
+      });
+      return json(200, rows[0] || null);
+    }
     if (!incoming.samples) return json(400, { error: 'El reporte no tiene muestras.' });
     const rows = await sb('reports', {
       method: 'POST',

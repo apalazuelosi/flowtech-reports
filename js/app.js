@@ -7,7 +7,7 @@ import { loadClients, getClientsCached, getActiveClient, getClient, setActiveCli
 import { initClientEditor, openClientManager } from './clientEditor.js';
 import { downloadCSV } from './csv.js';
 import { exportHydac } from './hydac.js';
-import { persistReport, fetchHistory, fetchReport, removeReport, renderHistoryList } from './history.js';
+import { persistReport, updateSavedReport, fetchHistory, fetchReport, removeReport, renderHistoryList } from './history.js';
 
 let editMode = false;
 let reportDirty = false; // any manual field/status edit on the current report
@@ -43,6 +43,8 @@ function applyLimitsOverride(clientId) {
     return;
   }
   // Override only the limits (iso/water); keep the report's logo/name/id.
+  // Changing limits is a recompute → drop any manual status overrides.
+  currentState.samples.forEach(s => { delete s._isoLevel; delete s._waterLevel; });
   currentState.profile = { ...currentState.profile, iso: chosen.iso, water: chosen.water };
   currentState.limitsClientId = chosen.id;
   renderReport(currentState.samples, $('reports-container'), currentState);
@@ -107,6 +109,7 @@ async function saveCurrentReport() {
   note.textContent = '';
   try {
     const saved = await persistReport(currentState);
+    if (currentState) currentState.savedReportId = saved?.id || null;
     note.textContent = saved ? '✓ Guardado en el historial' : '⚠ No guardado (sin conexión)';
   } catch (err) {
     console.error('No se pudo guardar el reporte:', err.message);
@@ -160,7 +163,7 @@ async function openSavedReport(id) {
   try {
     const r = await fetchReport(id);
     if (!r) return;
-    currentState = { samples: r.samples, empresa: r.client_name, generadoPor: r.generated_by, profile: r.profile };
+    currentState = { samples: r.samples, empresa: r.client_name, generadoPor: r.generated_by, profile: r.profile, savedReportId: r.id };
     renderReport(r.samples, $('reports-container'), currentState);
     afterRenderReport();
     $('save-status').textContent = 'Reporte del historial';
@@ -186,6 +189,20 @@ function toggleEdit() {
   $('edit-hint').textContent = editMode
     ? '✏️ Campos en amarillo son editables. El estado de ISO y agua también se puede cambiar.'
     : '💡 Activa "Editar" para corregir datos antes de guardar.';
+  // Leaving edit mode with changes → commit the manual edits to history.
+  if (!editMode && reportDirty && currentState?.savedReportId) commitEdits();
+}
+
+async function commitEdits() {
+  const note = $('save-status');
+  try {
+    await updateSavedReport(currentState.savedReportId, currentState);
+    reportDirty = false;
+    note.textContent = '✓ Cambios guardados';
+  } catch (err) {
+    console.error('No se pudieron guardar los cambios:', err.message);
+    note.textContent = '⚠ Cambios no guardados';
+  }
 }
 
 function resetApp() {

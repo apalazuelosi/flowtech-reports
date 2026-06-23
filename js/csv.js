@@ -29,7 +29,9 @@ export function downloadCSV(state) {
   const today = new Date().toISOString().slice(0, 10);
 
   const rows = samples.map(d => {
-    const level = overallStatus(classifyISO(d.isoCode, profile), classifyWater(d.waterKFppm, profile));
+    const isoLv = d._isoLevel || classifyISO(d.isoCode, profile);
+    const waterLv = d._waterLevel || classifyWater(d.waterKFppm, profile);
+    const level = overallStatus(isoLv, waterLv);
     return [
       d.labNo, d.sampledDate, d.receivedDate, d.completedDate,
       d.unitId, d.componentDescription,
