@@ -3,15 +3,52 @@
 
 import { extractSamples } from './extract.js';
 import { renderReport } from './report.js';
-import { loadClients, getClientsCached, getActiveClient, setActiveClient, isOffline } from './clients.js';
+import { loadClients, getClientsCached, getActiveClient, getClient, setActiveClient, isOffline } from './clients.js';
 import { initClientEditor, openClientManager } from './clientEditor.js';
 import { downloadCSV } from './csv.js';
 import { exportHydac } from './hydac.js';
 import { persistReport, fetchHistory, fetchReport, removeReport, renderHistoryList } from './history.js';
 
 let editMode = false;
+let reportDirty = false; // any manual field/status edit on the current report
 let currentState = null; // most recent extraction (for CSV + save)
 const $ = id => document.getElementById(id);
+
+// Runs after any report render: refresh the limits-override selector and reset
+// edit state so the toolbar matches the freshly-rendered papers.
+function afterRenderReport() {
+  refreshLimitsOverride();
+  reportDirty = false;
+  editMode = false;
+  const btn = $('edit-btn');
+  btn.classList.remove('active');
+  btn.textContent = '✏️ Editar campos';
+  $('edit-hint').textContent = '💡 Activa "Editar" para corregir datos antes de guardar.';
+}
+
+// ---------- Limits override (re-evaluate a processed report against other limits) ----------
+function refreshLimitsOverride() {
+  const sel = $('limits-override');
+  const curId = currentState?.limitsClientId ?? currentState?.profile?.id;
+  sel.innerHTML = getClientsCached()
+    .map(c => `<option value="${c.id}"${c.id === curId ? ' selected' : ''}>${c.name}</option>`)
+    .join('');
+}
+
+function applyLimitsOverride(clientId) {
+  const chosen = getClient(clientId);
+  if (!chosen || !currentState) return;
+  if (reportDirty && !confirm('Cambiar los límites volverá a generar el reporte y se perderán las ediciones manuales. ¿Continuar?')) {
+    refreshLimitsOverride(); // revert the dropdown to the current client
+    return;
+  }
+  // Override only the limits (iso/water); keep the report's logo/name/id.
+  currentState.profile = { ...currentState.profile, iso: chosen.iso, water: chosen.water };
+  currentState.limitsClientId = chosen.id;
+  renderReport(currentState.samples, $('reports-container'), currentState);
+  afterRenderReport();
+  $('save-status').textContent = 'Límites: ' + chosen.name;
+}
 
 // ---------- Screens ----------
 function showScreen(name) {
@@ -55,6 +92,7 @@ async function processFile(file) {
     };
     renderReport(samples, $('reports-container'), currentState);
     showScreen('report');
+    afterRenderReport();
     saveCurrentReport();
   } catch (err) {
     console.error('ERROR:', err.message, err.stack);
@@ -124,6 +162,7 @@ async function openSavedReport(id) {
     if (!r) return;
     currentState = { samples: r.samples, empresa: r.client_name, generadoPor: r.generated_by, profile: r.profile };
     renderReport(r.samples, $('reports-container'), currentState);
+    afterRenderReport();
     $('save-status').textContent = 'Reporte del historial';
     showScreen('report');
   } catch (err) {
@@ -174,6 +213,11 @@ async function init() {
     applyClientDefaults(getActiveClient(), true);
   });
   $('manage-clients-btn').addEventListener('click', openClientManager);
+  $('limits-override').addEventListener('change', e => applyLimitsOverride(e.target.value));
+  // Track manual edits so a limits re-render can warn before discarding them.
+  const rc = $('reports-container');
+  rc.addEventListener('input', () => { reportDirty = true; });
+  rc.addEventListener('change', () => { reportDirty = true; });
   $('history-btn').addEventListener('click', openHistory);
   $('history-back-btn').addEventListener('click', resetApp);
   $('edit-btn').addEventListener('click', toggleEdit);
