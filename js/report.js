@@ -87,24 +87,24 @@ export function renderReport(samples, container, ctx) {
       <div class="info-grid">
         <div class="info-cell">
           <h4>Informacion de Muestra</h4>
-          <div class="info-row"><span class="info-key">No. Lab</span><input class="editable-field" value="${safeVal(d.labNo)}"/></div>
-          <div class="info-row"><span class="info-key">Fecha de muestra</span><input class="editable-field" value="${safeVal(d.sampledDate)}"/></div>
-          <div class="info-row"><span class="info-key">Recibida</span><input class="editable-field" value="${safeVal(d.receivedDate)}"/></div>
-          <div class="info-row"><span class="info-key">Completada</span><input class="editable-field" value="${safeVal(d.completedDate)}"/></div>
+          <div class="info-row"><span class="info-key">No. Lab</span><input class="editable-field" data-field="labNo" value="${safeVal(d.labNo)}"/></div>
+          <div class="info-row"><span class="info-key">Fecha de muestra</span><input class="editable-field" data-field="sampledDate" value="${safeVal(d.sampledDate)}"/></div>
+          <div class="info-row"><span class="info-key">Recibida</span><input class="editable-field" data-field="receivedDate" value="${safeVal(d.receivedDate)}"/></div>
+          <div class="info-row"><span class="info-key">Completada</span><input class="editable-field" data-field="completedDate" value="${safeVal(d.completedDate)}"/></div>
         </div>
         <div class="info-cell">
           <h4>Unidad / Componente</h4>
-          <div class="info-row"><span class="info-key">ID Unidad</span><input class="editable-field" value="${safeVal(d.unitId)}"/></div>
-          <div class="info-row"><span class="info-key">Componente</span><input class="editable-field" value="${safeVal(d.componentDescription)}"/></div>
-          <div class="info-row"><span class="info-key">Empresa</span><input class="editable-field" value="${safeVal(empresa || d.worksite)}"/></div>
-          <div class="info-row"><span class="info-key">No. Referencia</span><input class="editable-field" value="${safeVal(d.referenceNo)}"/></div>
+          <div class="info-row"><span class="info-key">ID Unidad</span><input class="editable-field" data-field="unitId" value="${safeVal(d.unitId)}"/></div>
+          <div class="info-row"><span class="info-key">Componente</span><input class="editable-field" data-field="componentDescription" value="${safeVal(d.componentDescription)}"/></div>
+          <div class="info-row"><span class="info-key">Empresa</span><input class="editable-field" data-field="worksite" value="${safeVal(empresa || d.worksite)}"/></div>
+          <div class="info-row"><span class="info-key">No. Referencia</span><input class="editable-field" data-field="referenceNo" value="${safeVal(d.referenceNo)}"/></div>
         </div>
         <div class="info-cell">
           <h4>Fluido</h4>
-          <div class="info-row"><span class="info-key">Fabricante</span><input class="editable-field" value="${safeVal(d.fluidManufacturer)}"/></div>
-          <div class="info-row"><span class="info-key">Producto</span><input class="editable-field" value="${safeVal(d.fluidProduct)}"/></div>
-          <div class="info-row"><span class="info-key">Grado</span><input class="editable-field" value="${safeVal(d.fluidGrade ? 'ISO ' + d.fluidGrade.replace(/iso\s*/i, '') : null)}"/></div>
-          <div class="info-row"><span class="info-key">Generado por</span><input class="editable-field" value="${safeVal(generadoPor || d.evaluatedBy)}"/></div>
+          <div class="info-row"><span class="info-key">Fabricante</span><input class="editable-field" data-field="fluidManufacturer" value="${safeVal(d.fluidManufacturer)}"/></div>
+          <div class="info-row"><span class="info-key">Producto</span><input class="editable-field" data-field="fluidProduct" value="${safeVal(d.fluidProduct)}"/></div>
+          <div class="info-row"><span class="info-key">Grado</span><input class="editable-field" data-field="fluidGrade" value="${safeVal(d.fluidGrade ? 'ISO ' + d.fluidGrade.replace(/iso\s*/i, '') : null)}"/></div>
+          <div class="info-row"><span class="info-key">Generado por</span><input class="editable-field" data-field="evaluatedBy" value="${safeVal(generadoPor || d.evaluatedBy)}"/></div>
         </div>
       </div>
       <div style="padding:0 36px">
@@ -217,4 +217,21 @@ function wirePaper(paper, sample) {
 function autoSize(ta) {
   ta.style.height = 'auto';
   ta.style.height = ta.scrollHeight + 'px';
+}
+
+// Read edited field values from the rendered inputs back into the sample objects
+// so exports (CSV/HYDAC) and saved history reflect edits — not just the extracted
+// values. Status overrides are already synced onto samples during rendering.
+export function harvestEdits(container, samples) {
+  container.querySelectorAll('.report-paper').forEach((paper, i) => {
+    const s = samples[i];
+    if (!s) return;
+    paper.querySelectorAll('.editable-field[data-field]').forEach(inp => {
+      const key = inp.dataset.field;
+      let v = (inp.value || '').trim();
+      if (v === '—') v = '';
+      if (key === 'fluidGrade') v = v.replace(/iso\s*/i, '').trim(); // store bare grade
+      s[key] = v;
+    });
+  });
 }

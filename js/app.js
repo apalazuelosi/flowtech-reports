@@ -2,7 +2,7 @@
 // progress UI, edit mode, report history. Domain logic lives in the imports.
 
 import { extractSamples } from './extract.js';
-import { renderReport } from './report.js';
+import { renderReport, harvestEdits } from './report.js';
 import { loadClients, getClientsCached, getActiveClient, getClient, setActiveClient, isOffline } from './clients.js';
 import { initClientEditor, openClientManager } from './clientEditor.js';
 import { downloadCSV } from './csv.js';
@@ -14,6 +14,12 @@ let editMode = false;
 let reportDirty = false; // any manual field/status edit on the current report
 let currentState = null; // most recent extraction (for CSV + save)
 const $ = id => document.getElementById(id);
+
+// Pull the current (possibly edited) field values from the report into the
+// samples, so exports/saves reflect edits. Call before any export or save.
+function harvest() {
+  if (currentState) harvestEdits($('reports-container'), currentState.samples);
+}
 
 // Runs after any report render: refresh the limits-override selector and reset
 // edit state so the toolbar matches the freshly-rendered papers.
@@ -109,6 +115,7 @@ async function saveCurrentReport() {
   const note = $('save-status');
   note.textContent = '';
   try {
+    harvest();
     const saved = await persistReport(currentState);
     if (currentState) currentState.savedReportId = saved?.id || null;
     note.textContent = saved ? '✓ Guardado en el historial' : '⚠ No guardado (sin conexión)';
@@ -200,6 +207,7 @@ function toggleEdit() {
 async function commitEdits() {
   const note = $('save-status');
   try {
+    harvest();
     await updateSavedReport(currentState.savedReportId, currentState);
     reportDirty = false;
     note.textContent = '✓ Cambios guardados';
@@ -251,9 +259,10 @@ async function init() {
     catch (err) { alert('No se pudo generar el PDF: ' + err.message); }
     finally { btn.disabled = false; btn.textContent = txt; }
   });
-  $('csv-btn').addEventListener('click', () => { if (currentState) downloadCSV(currentState); });
+  $('csv-btn').addEventListener('click', () => { if (currentState) { harvest(); downloadCSV(currentState); } });
   $('hydac-btn').addEventListener('click', async () => {
     if (!currentState) return;
+    harvest();
     const btn = $('hydac-btn'); const txt = btn.textContent;
     btn.disabled = true; btn.textContent = 'Generando…';
     try { await exportHydac(currentState); }
