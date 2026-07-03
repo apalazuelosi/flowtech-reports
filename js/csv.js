@@ -3,7 +3,7 @@
 // working. The single `status` column is derived deterministically from the
 // active profile (worst of ISO/water) to match what the report shows.
 
-import { classifyISO, classifyWater, overallStatus } from './classify.js';
+import { classifyISO, classifyWater, overallStatus, isoLimits, fmtISO } from './classify.js';
 
 const COLUMNS = [
   'lab_no', 'sampled_date', 'received_date', 'completed_date',
@@ -13,6 +13,11 @@ const COLUMNS = [
   'particles_4um', 'particles_6um', 'particles_14um',
   'particles_21um', 'particles_38um', 'particles_70um',
   'status', 'generated_by', 'generated_date',
+  // Per-parameter status + the profile limits applied to that row, so the
+  // downstream (Cowork) lab-report generator reads them straight from the CSV.
+  'iso_status', 'water_status',
+  'iso_limit_prec', 'iso_limit_crit',
+  'water_limit_prec', 'water_limit_crit',
 ];
 
 const STATUS_LABEL = { error: 'DATO ERRONEO', critical: 'CRITICO', warning: 'PRECAUCION', normal: 'ACEPTABLE' };
@@ -32,6 +37,17 @@ export function downloadCSV(state) {
     const isoLv = d._isoLevel || classifyISO(d.isoCode, profile);
     const waterLv = d._waterLevel || classifyWater(d.waterKFppm, profile);
     const level = overallStatus(isoLv, waterLv);
+
+    // Per-parameter status + applied profile limits. Left blank for erroneous
+    // samples (per spec), since the semáforo isn't meaningful there.
+    const erroneous = level === 'error';
+    const isoStatus = erroneous ? '' : STATUS_LABEL[isoLv];
+    const waterStatus = erroneous ? '' : STATUS_LABEL[waterLv];
+    const isoPrec = erroneous ? '' : fmtISO(isoLimits(profile.iso.warn));
+    const isoCrit = erroneous ? '' : fmtISO(isoLimits(profile.iso.crit));
+    const waterPrec = erroneous ? '' : profile.water.warn;
+    const waterCrit = erroneous ? '' : profile.water.crit;
+
     return [
       d.labNo, d.sampledDate, d.receivedDate, d.completedDate,
       d.unitId, d.componentDescription,
@@ -44,6 +60,9 @@ export function downloadCSV(state) {
       STATUS_LABEL[level],
       generadoPor || d.evaluatedBy,
       today,
+      isoStatus, waterStatus,
+      isoPrec, isoCrit,
+      waterPrec, waterCrit,
     ].map(escapeCsv).join(',');
   });
 
