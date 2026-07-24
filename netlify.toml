@@ -5,6 +5,11 @@
   directory = "netlify/functions"
   node_bundler = "esbuild"
 
-# Give the PDF-extraction function headroom (Opus per 4-page batch).
+# Give the PDF-extraction function headroom.
 [functions.analyze]
   timeout = 26
+
+# Keep-alive: ping Supabase Mon & Thu (09:00 UTC) so the free-tier project never
+# idles into an auto-pause. Max gap ~4 days, well under Supabase's 7-day window.
+[functions.keepalive]
+  schedule = "0 9 * * 1,4"
