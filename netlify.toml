@@ -9,7 +9,8 @@
 [functions.analyze]
   timeout = 26
 
-# Keep-alive: ping Supabase Mon & Thu (09:00 UTC) so the free-tier project never
-# idles into an auto-pause. Max gap ~4 days, well under Supabase's 7-day window.
+# Keep-alive: ping Supabase daily (09:00 UTC) so the free-tier project never
+# idles into an auto-pause. Daily gives wide margin against the 7-day window and
+# any single missed run. (A GitHub Action does the same, as a verifiable backup.)
 [functions.keepalive]
-  schedule = "0 9 * * 1,4"
+  schedule = "@daily"
