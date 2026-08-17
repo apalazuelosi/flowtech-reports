@@ -125,7 +125,7 @@ async function saveCurrentReport() {
   }
 }
 
-const BATCH_SIZE = 4;
+const BATCH_SIZE = 2; // keep in sync with extract.js (progress label only)
 function setProgress(doneBatches, totalBatches, pageStart, pageEnd, totalPages) {
   const pct = Math.round((doneBatches / totalBatches) * 100);
   $('progress-bar').style.width = pct + '%';

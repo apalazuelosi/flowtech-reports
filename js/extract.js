@@ -3,7 +3,9 @@
 // prompt lives server-side (analyze.js); the client only orchestrates batching.
 
 const NETLIFY_FN = '/.netlify/functions/analyze';
-const BATCH_SIZE = 4;
+// Smaller batches = faster per-request response, which is less likely to trip a
+// corporate/VPN firewall's idle-connection ("inactivity") timeout.
+const BATCH_SIZE = 2;
 
 // Reads a File, returns an array of extracted sample objects.
 // onProgress(doneBatches, totalBatches, pageStart, pageEnd, totalPages) is
